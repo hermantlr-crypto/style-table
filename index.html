@@ -8216,8 +8216,10 @@ async function vsGenerateOutfitImage(advice, occasion, closet) {
       })
     });
 
-    const prediction = await startRes.json();
-    if (!prediction.id) throw new Error(prediction.error || 'No prediction ID returned');
+    const rawText = await startRes.text();
+    console.log('Replicate raw response:', rawText);
+    const prediction = JSON.parse(rawText);
+    if (!prediction.id) throw new Error(prediction.detail || prediction.error || rawText);
 
     // Poll for result via proxy
     let result = prediction;
