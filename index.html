@@ -7902,7 +7902,10 @@ document.addEventListener('click', (e) => {
 
     <!-- AI Outfit Image -->
     <div id="vsImageSection" style="display:none;margin-top:4px;">
-      <div style="color:#D4A354;font-size:10px;font-weight:700;letter-spacing:1.5px;margin-bottom:8px;">🖼️ YOUR LOOK</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="color:#D4A354;font-size:10px;font-weight:700;letter-spacing:1.5px;">🖼️ YOUR LOOK</div>
+        <button id="vsRegenBtn" onclick="vsRegenerateImage()" style="display:none;background:transparent;border:1px solid #444;border-radius:4px;color:#888;font-size:9px;padding:3px 8px;cursor:pointer;font-family:Montserrat,sans-serif;letter-spacing:0.5px;">↻ Regenerate</button>
+      </div>
       <div id="vsImageStatus" style="color:#888;font-size:11px;text-align:center;padding:20px 0;letter-spacing:0.5px;"></div>
       <img id="vsOutfitImage" src="" alt="AI outfit illustration" style="display:none;width:100%;height:auto;max-height:520px;object-fit:contain;border-radius:8px;border:1px solid #2a2a2a;background:#0a0a0a;" />
     </div>
@@ -8089,33 +8092,11 @@ function vsToggleMicField(fieldId, btnId, statusId) {
 }
 
 // ── Shop link builder ──────────────────────────────────────────────────────
-function vsGenerateShopLinks(advice, occasion, closet) {
-  // Extract key pieces section
-  const keyPiecesMatch = advice.match(/KEY PIECES[:\s]*([\s\S]*?)(?=STYLING NOTES|MANTRA|$)/i);
-  const keyPiecesText = keyPiecesMatch ? keyPiecesMatch[1] : advice;
-
-  // Parse dash-prefixed items into clean search terms
-  const lines = keyPiecesText.split(/\n|<br>/)
-    .map(l => l.replace(/^[-•*\s]+/, '').replace(/\*\*/g,'').trim())
-    .filter(l => l.length > 4 && l.length < 80 && /[a-zA-Z]/.test(l));
-
-  // Build smarter search queries by appending occasion + women's
-  const searchTerms = lines.slice(0, 4).map(term => {
-    // Remove parenthetical notes
-    let clean = term.replace(/\(.*?\)/g,'').trim();
-    // Remove size/color hints that are too specific
-    clean = clean.replace(/[\d]+("|inch|cm)/gi,'').trim();
-    // Add womens + occasion context for better results
-    const occasionHint = occasion && occasion !== 'General occasion'
-      ? occasion.split('/')[0].trim().toLowerCase()
-      : '';
-    const suffix = occasionHint && !clean.toLowerCase().includes(occasionHint)
-      ? ' women ' + occasionHint
-      : ' women';
-    return { label: clean, query: clean + suffix };
-  });
-
-  if (!searchTerms.length) searchTerms.push({ label: occasion + ' outfit', query: occasion + ' outfit women' });
+async function vsGenerateShopLinks(advice, occasion, closet) {
+  const shopSection = document.getElementById('vsShopSection');
+  const shopLinks = document.getElementById('vsShopLinks');
+  shopSection.style.display = 'block';
+  shopLinks.innerHTML = '<div style="color:#888;font-size:10px;padding:8px 0;">Finding the best shops for this look…</div>';
 
   const retailers = [
     { name: 'Nordstrom',        url: 'https://www.nordstrom.com/sr?origin=keywordsearch&keyword=' },
@@ -8127,48 +8108,124 @@ function vsGenerateShopLinks(advice, occasion, closet) {
     { name: 'Marcella NYC',     url: 'https://www.marcellanyc.com/search?q=' },
   ];
 
-  const shopSection = document.getElementById('vsShopSection');
-  const shopLinks = document.getElementById('vsShopLinks');
-  shopLinks.innerHTML = '';
+  try {
+    // Ask Claude to generate precise stylist-quality search queries
+    const res = await fetch('/.netlify/functions/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: 'You are a professional fashion stylist generating precise product search queries for luxury fashion retailers. Generate specific, searchable terms a stylist would use to find exact pieces.',
+        messages: [{
+          role: 'user',
+          content: `Based on this outfit advice, generate exactly 4 precise search queries for finding these specific pieces online.
 
-  searchTerms.forEach(({ label, query }) => {
-    const termDiv = document.createElement('div');
-    termDiv.style.cssText = 'margin-bottom:10px;';
-    termDiv.innerHTML = `<div style="color:#D4A354;font-size:9px;font-weight:700;letter-spacing:1px;margin-bottom:5px;text-transform:uppercase;">— ${label}</div>`;
+OUTFIT ADVICE:
+${advice.replace(/<[^>]+>/g,'').substring(0, 500)}
 
-    const linksRow = document.createElement('div');
-    linksRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;';
+OCCASION: ${occasion}
 
-    retailers.forEach(r => {
-      const a = document.createElement('a');
-      a.href = r.url + encodeURIComponent(query);
-      a.target = '_blank';
-      a.rel = 'noopener';
-      a.textContent = r.name;
-      a.style.cssText = [
-        'background:#111',
-        'border:1px solid #2a2a2a',
-        'border-radius:4px',
-        'color:#aaa',
-        'font-size:9px',
-        'padding:4px 9px',
-        'text-decoration:none',
-        'font-family:Montserrat,sans-serif',
-        'font-weight:600',
-        'letter-spacing:0.5px',
-        'cursor:pointer',
-        'transition:all 0.15s'
-      ].join(';');
-      a.onmouseover = () => { a.style.borderColor = '#D4A354'; a.style.color = '#D4A354'; };
-      a.onmouseout  = () => { a.style.borderColor = '#2a2a2a'; a.style.color = '#aaa'; };
-      linksRow.appendChild(a);
+Rules:
+- Each query should be 3-6 words maximum
+- Include specific descriptors: color, fabric, silhouette, style
+- Target women size inclusive, ages 40-55
+- Make queries specific enough to find the exact piece, not generic
+- Format: Return ONLY a JSON array of objects like this:
+[
+  {"label": "Piece Name", "query": "specific search term women"},
+  {"label": "Piece Name", "query": "specific search term women"}
+]
+No explanation, just the JSON array.`
+        }]
+      })
     });
 
-    termDiv.appendChild(linksRow);
-    shopLinks.appendChild(termDiv);
-  });
+    const data = await res.json();
+    const text = data.content.filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+    
+    // Parse JSON from Claude's response
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    const searchTerms = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
+
+    shopLinks.innerHTML = '';
+
+    if (!searchTerms.length) throw new Error('No search terms returned');
+
+    searchTerms.slice(0, 4).forEach(({ label, query }) => {
+      const termDiv = document.createElement('div');
+      termDiv.style.cssText = 'margin-bottom:12px;';
+      termDiv.innerHTML = `<div style="color:#D4A354;font-size:9px;font-weight:700;letter-spacing:1px;margin-bottom:6px;text-transform:uppercase;">— ${label}</div>`;
+
+      const linksRow = document.createElement('div');
+      linksRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;';
+
+      retailers.forEach(r => {
+        const a = document.createElement('a');
+        a.href = r.url + encodeURIComponent(query);
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = r.name;
+        a.style.cssText = [
+          'background:#111',
+          'border:1px solid #2a2a2a',
+          'border-radius:4px',
+          'color:#aaa',
+          'font-size:9px',
+          'padding:4px 9px',
+          'text-decoration:none',
+          'font-family:Montserrat,sans-serif',
+          'font-weight:600',
+          'letter-spacing:0.5px',
+          'cursor:pointer',
+          'transition:all 0.15s'
+        ].join(';');
+        a.onmouseover = () => { a.style.borderColor = '#D4A354'; a.style.color = '#D4A354'; };
+        a.onmouseout  = () => { a.style.borderColor = '#2a2a2a'; a.style.color = '#aaa'; };
+        linksRow.appendChild(a);
+      });
+
+      termDiv.appendChild(linksRow);
+      shopLinks.appendChild(termDiv);
+    });
+
+  } catch(err) {
+    // Fallback to basic search if Claude call fails
+    const cleanAdvice = advice.replace(/<[^>]+>/g,'').replace(/\n/g,' ');
+    shopLinks.innerHTML = '';
+    [{ label: occasion + ' outfit', query: occasion + ' dress women elegant' }].forEach(({ label, query }) => {
+      const termDiv = document.createElement('div');
+      termDiv.style.cssText = 'margin-bottom:10px;';
+      termDiv.innerHTML = `<div style="color:#D4A354;font-size:9px;font-weight:700;letter-spacing:1px;margin-bottom:5px;text-transform:uppercase;">— ${label}</div>`;
+      const linksRow = document.createElement('div');
+      linksRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;';
+      retailers.forEach(r => {
+        const a = document.createElement('a');
+        a.href = r.url + encodeURIComponent(query);
+        a.target = '_blank'; a.rel = 'noopener'; a.textContent = r.name;
+        a.style.cssText = 'background:#111;border:1px solid #2a2a2a;border-radius:4px;color:#aaa;font-size:9px;padding:4px 9px;text-decoration:none;font-family:Montserrat,sans-serif;font-weight:600;';
+        linksRow.appendChild(a);
+      });
+      termDiv.appendChild(linksRow);
+      shopLinks.appendChild(termDiv);
+    });
+  }
 
   shopSection.style.display = 'block';
+}
+
+// ── Store last image context for regeneration ─────────────────────────────
+let vsLastImageContext = null;
+
+function vsRegenerateImage() {
+  if (vsLastImageContext) {
+    document.getElementById('vsRegenBtn').style.display = 'none';
+    document.getElementById('vsOutfitImage').style.display = 'none';
+    vsGenerateOutfitImage(
+      vsLastImageContext.advice,
+      vsLastImageContext.occasion,
+      vsLastImageContext.closet,
+      vsLastImageContext.userRequest
+    );
+  }
 }
 
 // ── FLUX Pro image generation with Claude prompt engineering ──────────────
@@ -8176,6 +8233,9 @@ async function vsGenerateOutfitImage(advice, occasion, closet, userRequest) {
   const imgSection = document.getElementById('vsImageSection');
   const imgEl      = document.getElementById('vsOutfitImage');
   const imgStatus  = document.getElementById('vsImageStatus');
+
+  // Save context for regeneration
+  vsLastImageContext = { advice, occasion, closet, userRequest };
 
   imgSection.style.display = 'block';
   imgEl.style.display = 'none';
@@ -8198,29 +8258,28 @@ async function vsGenerateOutfitImage(advice, occasion, closet, userRequest) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        system: 'You are a professional fashion photographer and AI image prompt engineer. Write precise, detailed prompts for FLUX Pro image generation that produce accurate fashion editorial photographs. Always specify exactly the garment type requested. Never substitute garment types. Be very specific about clothing details.',
+        system: 'You are a professional AI image prompt engineer for FLUX Pro fashion photography. You write extremely precise prompts. You NEVER substitute the garment type the client requested. If they ask for a dress you generate a dress. If they ask for pants you generate pants. Never add layers not requested.',
         messages: [{
           role: 'user',
-          content: `Write a FLUX Pro image generation prompt for a fashion editorial photograph based on this styling request:
+          content: `Write a FLUX Pro fashion editorial prompt. Be extremely precise about the garment type.
 
 CLIENT REQUEST: ${userRequest || ''}
 OUTFIT ADVICE: ${advice.replace(/<[^>]+>/g,'').substring(0, 400)}
 OCCASION: ${occasion}
 
-Requirements for the prompt:
-- Start with the EXACT garment type from the client request (if they asked for a dress, the prompt must feature ONLY a dress — NO blazer, NO jacket, NO cardigan over it)
-- If client asked for a cocktail dress, show a cocktail dress only — no layers on top
-- If client asked for a dress, DO NOT add a blazer or jacket over the dress
-- Specify a ${ethnicDesc}, plus-size inclusive curvy woman in her 40s-50s
-- Full body shot from head to toe, clothing is the hero, camera pulled back wide
-- ${currentSeason} ${currentYear} high fashion aesthetic
-- Inspired by Tom Ford, Celine, Max Mara — elevated, sexy, confident, NOT conservative
-- Include specific colors, fabrics, silhouette from the outfit advice
-- Strappy heels or elegant sandals, statement jewelry
-- Clean neutral studio background with dramatic cinematic lighting
-- End with: sharp focus, 4K photorealistic fashion photography, no text
+CRITICAL RULES — follow exactly:
+1. CLIENT ASKED FOR DRESS = model wears ONLY a dress. NO blazer NO jacket NO cardigan on top. Ever.
+2. CLIENT ASKED FOR SUIT = model wears suit with trousers only.
+3. CLIENT ASKED FOR PANTS = model wears pants not a dress.
+4. Never add garments the client did not request.
+5. Start with: "Full length editorial photo of a ${ethnicDesc} curvy woman in her 40s wearing [EXACT garment from client request in specific color and fabric from advice]..."
+6. Camera pulled back wide — full body head to toe including shoes visible.
+7. Clothing is the hero not the face. Wide shot not a portrait.
+8. Style: Tom Ford Celine Max Mara — confident sexy elevated modern. NOT conservative NOT covered up.
+9. Dramatic studio lighting. Sharp focus on clothing. 4K photorealistic. No text no watermarks.
+10. ${currentSeason} ${currentYear} high fashion aesthetic.
 
-Write ONLY the image prompt, nothing else. No explanation. Just the prompt text.`
+Return ONLY the raw prompt. No explanation. No quotes. Just the prompt.`
         }]
       })
     });
@@ -8282,6 +8341,7 @@ Write ONLY the image prompt, nothing else. No explanation. Just the prompt text.
         imgEl.src = typeof imgUrl === 'string' ? imgUrl : String(imgUrl);
         imgEl.style.display = 'block';
         imgStatus.style.display = 'none';
+        document.getElementById('vsRegenBtn').style.display = 'block';
       } else {
         imgStatus.textContent = '⚠️ Image URL not found — try again.';
       }
