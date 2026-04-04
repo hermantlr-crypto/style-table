@@ -8199,7 +8199,7 @@ async function vsGenerateOutfitImage(advice, occasion, closet) {
   const currentSeason = ['winter','spring','summer','fall'][Math.floor((new Date().getMonth()) / 3)];
 
   const prompt = [
-    'High fashion editorial photograph, full body shot, architectural studio background,',
+    'High fashion editorial photograph, FULL BODY SHOT head to toe, full length image showing complete outfit from head to shoes, architectural studio background,',
     'dramatic cinematic lighting with depth, ' + currentYear + ' Vogue Italia aesthetic,',
     currentSeason + ' ' + currentYear + ' high fashion — NOT matronly NOT conservative NOT basic,',
     'featuring a stunning powerful ' + ethnicDesc + ' in her 40s or 50s,',
@@ -8233,8 +8233,8 @@ async function vsGenerateOutfitImage(advice, occasion, closet) {
         input: {
           prompt: prompt,
           negative_prompt: 'ugly, blurry, cartoon, watermark, text, logo, deformed, matronly, frumpy, dowdy, ill-fitting, baggy, boxy, pastel, floral, ruffles, mother-of-the-bride, conservative, dated, old-fashioned, fast fashion, cheap fabric, polyester sheen',
-          width: 768,
-          height: 1024,
+          width: 640,
+          height: 1152,
           num_inference_steps: 28,
           guidance_scale: 7.5,
           output_format: 'webp'
