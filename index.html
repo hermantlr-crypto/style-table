@@ -8248,14 +8248,17 @@ async function vsGenerateOutfitImage(advice, occasion, closet, userRequest) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         service: 'replicate',
+        model: 'flux-pro',
         input: {
           prompt: prompt,
-          negative_prompt: 'ugly, blurry, cartoon, watermark, text, logo, deformed, matronly, frumpy, dowdy, ill-fitting, baggy, boxy, pastel, floral, ruffles, mother-of-the-bride, conservative, dated, old-fashioned, fast fashion, cheap fabric, polyester sheen',
           width: 640,
           height: 1152,
-          num_inference_steps: 28,
-          guidance_scale: 7.5,
-          output_format: 'webp'
+          steps: 25,
+          guidance: 3,
+          output_format: 'webp',
+          output_quality: 90,
+          safety_tolerance: 2,
+          prompt_upsampling: true
         }
       })
     });
