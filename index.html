@@ -8199,23 +8199,28 @@ async function vsGenerateOutfitImage(advice, occasion, closet) {
   const currentSeason = ['winter','spring','summer','fall'][Math.floor((new Date().getMonth()) / 3)];
 
   const prompt = [
-    'Luxury fashion editorial photograph, full body shot, clean neutral studio background,',
-    'soft natural cinematic lighting, Vogue and Harper's Bazaar ' + currentYear + ' aesthetic,',
-    currentSeason + ' ' + currentYear + ' runway-inspired fashion, current season trends,',
-    'featuring a beautiful confident ' + ethnicDesc + ' in her 40s or 50s,',
-    'embodying grace, power and self-assurance, elevated and fashion-forward styling,',
-    'contemporary silhouettes: tailored blazers, wide-leg trousers, midi dresses, chic coordinates,',
-    'rich textures: silk, crepe, ponte, cashmere, structured suiting,',
-    'sophisticated color palette: rich neutrals, deep jewel tones, or one bold statement color,',
-    'the look of a successful stylish woman who is completely in command of her presence,',
-    'NOT casual NOT basic NOT dated NOT fast fashion — elevated current fashionable polished,',
-    'clothing fits impeccably — perfectly tailored to the body, nothing too tight too loose or ill-fitting,',
-    'sustainable luxury fashion aesthetic: investment pieces, slow fashion, conscious dressing,',
-    'garments with intention and longevity, quality craftsmanship visible in every stitch,',
-    lookText ? lookText.substring(0,100) + ',' : '',
-    keyText  ? 'wearing: ' + keyText.substring(0,120) + ',' : '',
+    'High fashion editorial photograph, full body shot, architectural studio background,',
+    'dramatic cinematic lighting with depth, ' + currentYear + ' Vogue Italia aesthetic,',
+    currentSeason + ' ' + currentYear + ' high fashion — NOT matronly NOT conservative NOT basic,',
+    'featuring a stunning powerful ' + ethnicDesc + ' in her 40s or 50s,',
+    'she radiates commanding confidence, sophistication and modern elegance,',
+    'FASHION FORWARD silhouettes: sharp structured blazer with statement trousers,',
+    'OR sculptural midi dress with architectural details,',
+    'OR monochromatic power suit in a rich unexpected color,',
+    'OR sleek column dress with bold accessories,',
+    'luxurious sustainable fabrics: silk satin, structured crepe, fine cashmere, Italian wool,',
+    'color palette: deep emerald, rich burgundy, cobalt, camel, crisp white, or bold jewel tone,',
+    'NOT lavender NOT pastel NOT floral NOT ruffles NOT matronly NOT mother-of-the-bride,',
+    'clothing is IMPECCABLY fitted — perfectly tailored, clean lines, intentional drape,',
+    'accessories: sculptural jewelry, quality leather bag, elegant pointed heels or loafers,',
+    'slow fashion investment pieces with visible craftsmanship and longevity,',
+    'inspired by the aesthetic of Michael Kors, Celine, Ralph Lauren, Balenciaga, Akris, Tom Ford, Max Mara, Tod\'s,',
+    'clean architectural tailoring, luxurious minimalism, power dressing with effortless sophistication,',
+    'she looks like a powerful CEO stylist who sets trends not follows them,',
+    lookText ? lookText.substring(0, 100) + ',' : '',
+    keyText  ? 'wearing: ' + keyText.substring(0, 120) + ',' : '',
     'occasion: ' + occasion + ',',
-    'sharp focus, professional photography, 4K photorealistic quality, no text or watermarks'
+    'sharp focus, professional fashion photography, 4K photorealistic, no text no watermarks'
   ].filter(Boolean).join(' ');
 
   try {
@@ -8227,7 +8232,7 @@ async function vsGenerateOutfitImage(advice, occasion, closet) {
         service: 'replicate',
         input: {
           prompt: prompt,
-          negative_prompt: 'ugly, blurry, cartoon, illustration, painting, watermark, text, logo, deformed, extra limbs, bad anatomy',
+          negative_prompt: 'ugly, blurry, cartoon, watermark, text, logo, deformed, matronly, frumpy, dowdy, ill-fitting, baggy, boxy, pastel, floral, ruffles, mother-of-the-bride, conservative, dated, old-fashioned, fast fashion, cheap fabric, polyester sheen',
           width: 768,
           height: 1024,
           num_inference_steps: 28,
