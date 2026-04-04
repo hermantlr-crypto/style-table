@@ -8188,9 +8188,16 @@ async function vsGenerateOutfitImage(advice, occasion, closet) {
   const keyMatch  = advice.match(/KEY PIECES[:\s]*([\s\S]*?)(?=STYLING NOTES|MANTRA|$)/i);
   const keyText   = keyMatch  ? keyMatch[1].replace(/<[^>]+>/g,'').replace(/\n/g,' ').replace(/[-•*]/g,'').trim() : '';
 
+  const diverseDescriptors = [
+    'Black woman', 'Latina woman', 'Asian woman', 'Middle Eastern woman',
+    'South Asian woman', 'mixed race woman', 'Indigenous woman', 'woman of color'
+  ];
+  const ethnicDesc = diverseDescriptors[Math.floor(Math.random() * diverseDescriptors.length)];
+
   const prompt = [
     'High-end fashion editorial photograph, full body shot, neutral studio background,',
     'soft natural lighting, professional styling, Vogue magazine aesthetic,',
+    'featuring a beautiful ' + ethnicDesc + ' model, ages 25-55,',
     lookText ? lookText.substring(0,120) + ',' : '',
     keyText  ? 'outfit details: ' + keyText.substring(0,120) + ',' : '',
     'occasion: ' + occasion + ',',
