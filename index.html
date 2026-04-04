@@ -8198,25 +8198,25 @@ async function vsGenerateOutfitImage(advice, occasion, closet) {
   const currentYear = new Date().getFullYear();
   const currentSeason = ['winter','spring','summer','fall'][Math.floor((new Date().getMonth()) / 3)];
 
+  // Build garment description first so it dominates the prompt
+  const garmentDesc = [
+    keyText ? keyText.substring(0, 200) : '',
+    lookText ? lookText.substring(0, 100) : ''
+  ].filter(Boolean).join(', ');
+
   const prompt = [
-    'High fashion editorial photograph, FULL BODY SHOT head to toe, full length image showing complete outfit from head to shoes, architectural studio background,',
-    'dramatic cinematic lighting with depth, ' + currentYear + ' Vogue Italia aesthetic,',
-    currentSeason + ' ' + currentYear + ' high fashion — NOT matronly NOT conservative NOT basic,',
-    'featuring a stunning powerful ' + ethnicDesc + ' in her 40s or 50s,',
-    'she radiates commanding confidence, sophistication and modern elegance,',
-    'FASHION FORWARD styling — wear exactly what is described in the outfit details below, no substitutions,',
-    'luxurious sustainable fabrics: silk satin, structured crepe, fine cashmere, Italian wool,',
-    'color palette: deep emerald, rich burgundy, cobalt, camel, crisp white, or bold jewel tone,',
-    'NOT lavender NOT pastel NOT floral NOT ruffles NOT matronly NOT mother-of-the-bride,',
-    'clothing is IMPECCABLY fitted — perfectly tailored, clean lines, intentional drape,',
-    'accessories: sculptural jewelry, quality leather bag, elegant pointed heels or loafers,',
-    'slow fashion investment pieces with visible craftsmanship and longevity,',
-    'inspired by the aesthetic of Michael Kors, Celine, Ralph Lauren, Balenciaga, Akris, Tom Ford, Max Mara, Tod\'s,',
-    'clean architectural tailoring, luxurious minimalism, power dressing with effortless sophistication,',
-    'she looks like a powerful CEO stylist who sets trends not follows them,',
-    lookText ? lookText.substring(0, 100) + ',' : '',
-    keyText  ? 'wearing: ' + keyText.substring(0, 120) + ',' : '',
+    // GARMENT FIRST — highest weight in SD
+    garmentDesc ? 'A woman wearing ' + garmentDesc + ',' : '',
     'occasion: ' + occasion + ',',
+    // Style context
+    'High fashion editorial photograph, FULL BODY SHOT head to toe showing complete outfit from head to shoes,',
+    'dramatic cinematic lighting, ' + currentYear + ' Vogue Italia aesthetic,',
+    'featuring a stunning powerful ' + ethnicDesc + ' in her 40s or 50s,',
+    'commanding confidence, sophistication, modern elegance,',
+    'luxurious sustainable fabrics, impeccably fitted and tailored,',
+    'inspired by Michael Kors, Celine, Ralph Lauren, Balenciaga, Akris, Tom Ford, Max Mara,',
+    'NOT matronly NOT pant suit NOT jumpsuit — render EXACTLY the garment described above,',
+    'accessories: sculptural jewelry, quality leather bag, elegant heels,',
     'sharp focus, professional fashion photography, 4K photorealistic, no text no watermarks'
   ].filter(Boolean).join(' ');
 
