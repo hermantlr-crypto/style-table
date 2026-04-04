@@ -8172,7 +8172,7 @@ function vsGenerateShopLinks(advice, occasion, closet) {
 }
 
 // ── Stable Diffusion 3.5 image generation ─────────────────────────────────
-async function vsGenerateOutfitImage(advice, occasion, closet) {
+async function vsGenerateOutfitImage(advice, occasion, closet, userRequest) {
   const imgSection = document.getElementById('vsImageSection');
   const imgEl      = document.getElementById('vsOutfitImage');
   const imgStatus  = document.getElementById('vsImageStatus');
@@ -8199,7 +8199,13 @@ async function vsGenerateOutfitImage(advice, occasion, closet) {
   const currentSeason = ['winter','spring','summer','fall'][Math.floor((new Date().getMonth()) / 3)];
 
   // Build garment description first so it dominates the prompt
+  console.log('lookText:', lookText);
+  console.log('keyText:', keyText);
+  console.log('userRequest:', userRequest);
+
+  // Use user request + key pieces to build garment description
   const garmentDesc = [
+    userRequest ? userRequest.substring(0, 150) : '',
     keyText ? keyText.substring(0, 200) : '',
     lookText ? lookText.substring(0, 100) : ''
   ].filter(Boolean).join(', ');
@@ -8327,7 +8333,7 @@ Client request: ${req}`;
     document.getElementById('vsAdviceOutput').style.display = 'block';
     // Generate shop links and outfit image
     vsGenerateShopLinks(advice, tags, closet);
-    vsGenerateOutfitImage(advice, tags, closet);
+    vsGenerateOutfitImage(advice, tags, closet, req);
   } catch(err) {
     document.getElementById('vsAdviceOutput').innerHTML = `<span style="color:#ff6666;">Error: ${err.message}</span>`;
     document.getElementById('vsAdviceOutput').style.display = 'block';
