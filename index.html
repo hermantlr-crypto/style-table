@@ -8224,22 +8224,22 @@ async function vsGenerateOutfitImage(advice, occasion, closet, userRequest) {
   else garmentType = garmentDesc || 'an elevated fashion outfit';
 
   const prompt = [
-    // GARMENT TYPE ABSOLUTE FIRST — locks SD to correct silhouette
-    'Full length fashion editorial, woman wearing ' + garmentType + ',',
-    garmentDesc ? 'specific details: ' + garmentDesc.substring(0, 180) + ',' : '',
-    'FULL BODY SHOT from head to toe showing complete outfit and shoes,',
-    'High fashion, sexy, bold, fashion-forward, NOT conservative NOT covered up NOT modest,',
-    'dramatic cinematic studio lighting, ' + currentYear + ' Vogue Italia editorial,',
+    // CLOTHING IS THE HERO — camera pulled back to show full outfit
+    'full length fashion editorial photograph, camera pulled back showing ENTIRE outfit from head to toe including shoes,',
+    'the CLOTHING is the focal point not the face, wide shot showing complete look,',
+    'woman wearing ' + garmentType + ',',
+    garmentDesc ? 'outfit details: ' + garmentDesc.substring(0, 180) + ',' : '',
+    'shot from 10 feet away to capture full body and complete garment,',
+    'high fashion, bold, fashion-forward, ' + currentYear + ' Vogue Italia editorial,',
     ethnicDesc + ' in her 40s or 50s, powerful commanding presence,',
     'luxurious sustainable fabrics — silk, satin, crepe, cashmere, fine Italian wool,',
     'inspired by Tom Ford, Celine, Balenciaga — sleek sensual sophisticated,',
-    'impeccably fitted, sculpted to the body, clean sharp lines,',
-    'bold statement accessories: sculptural earrings, pointed heels or strappy sandals,',
-    'NOT frumpy NOT baggy NOT conservative NOT modest NOT covered up,',
-    'sharp focus, 4K photorealistic fashion photography, no text no watermarks'
+    'impeccably fitted and tailored, clean sharp architectural lines,',
+    'bold accessories: sculptural earrings, pointed heels or strappy sandals,',
+    'dramatic studio lighting, sharp focus on clothing, 4K photorealistic, no text no watermarks'
   ].filter(Boolean).join(' ');
-  
-  console.log('Final SD prompt:', prompt.substring(0, 300));
+
+  console.log('Final prompt:', prompt.substring(0, 300));
 
   try {
     // Start prediction via Netlify proxy
