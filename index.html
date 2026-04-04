@@ -8210,21 +8210,36 @@ async function vsGenerateOutfitImage(advice, occasion, closet, userRequest) {
     lookText ? lookText.substring(0, 100) : ''
   ].filter(Boolean).join(', ');
 
+  // Detect specific garment type from user request and key pieces
+  const requestLower = (userRequest || '').toLowerCase();
+  const keyLower = (keyText || '').toLowerCase();
+  const combined = requestLower + ' ' + keyLower;
+
+  let garmentType = '';
+  if (combined.includes('dress')) garmentType = 'ONE SINGLE DRESS, NOT a skirt, NOT a suit, NOT separates — a DRESS';
+  else if (combined.includes('skirt')) garmentType = 'a skirt outfit, NOT pants, NOT a dress';
+  else if (combined.includes('suit')) garmentType = 'a tailored suit with trousers';
+  else if (combined.includes('trouser') || combined.includes('pant')) garmentType = 'trousers with a top or blazer, NOT a dress or skirt';
+  else if (combined.includes('jumpsuit') || combined.includes('jump suit')) garmentType = 'a jumpsuit, NOT a dress or suit';
+  else garmentType = garmentDesc || 'an elevated fashion outfit';
+
   const prompt = [
-    // GARMENT FIRST — highest weight in SD
-    garmentDesc ? 'A woman wearing ' + garmentDesc + ',' : '',
-    'occasion: ' + occasion + ',',
-    // Style context
-    'High fashion editorial photograph, FULL BODY SHOT head to toe showing complete outfit from head to shoes,',
-    'dramatic cinematic lighting, ' + currentYear + ' Vogue Italia aesthetic,',
-    'featuring a stunning powerful ' + ethnicDesc + ' in her 40s or 50s,',
-    'commanding confidence, sophistication, modern elegance,',
-    'luxurious sustainable fabrics, impeccably fitted and tailored,',
-    'inspired by Michael Kors, Celine, Ralph Lauren, Balenciaga, Akris, Tom Ford, Max Mara,',
-    'NOT matronly NOT pant suit NOT jumpsuit — render EXACTLY the garment described above,',
-    'accessories: sculptural jewelry, quality leather bag, elegant heels,',
-    'sharp focus, professional fashion photography, 4K photorealistic, no text no watermarks'
+    // GARMENT TYPE ABSOLUTE FIRST — locks SD to correct silhouette
+    'Full length fashion editorial, woman wearing ' + garmentType + ',',
+    garmentDesc ? 'specific details: ' + garmentDesc.substring(0, 180) + ',' : '',
+    'FULL BODY SHOT from head to toe showing complete outfit and shoes,',
+    'High fashion, sexy, bold, fashion-forward, NOT conservative NOT covered up NOT modest,',
+    'dramatic cinematic studio lighting, ' + currentYear + ' Vogue Italia editorial,',
+    ethnicDesc + ' in her 40s or 50s, powerful commanding presence,',
+    'luxurious sustainable fabrics — silk, satin, crepe, cashmere, fine Italian wool,',
+    'inspired by Tom Ford, Celine, Balenciaga — sleek sensual sophisticated,',
+    'impeccably fitted, sculpted to the body, clean sharp lines,',
+    'bold statement accessories: sculptural earrings, pointed heels or strappy sandals,',
+    'NOT frumpy NOT baggy NOT conservative NOT modest NOT covered up,',
+    'sharp focus, 4K photorealistic fashion photography, no text no watermarks'
   ].filter(Boolean).join(' ');
+  
+  console.log('Final SD prompt:', prompt.substring(0, 300));
 
   try {
     // Start prediction via Netlify proxy
