@@ -8189,19 +8189,33 @@ async function vsGenerateOutfitImage(advice, occasion, closet) {
   const keyText   = keyMatch  ? keyMatch[1].replace(/<[^>]+>/g,'').replace(/\n/g,' ').replace(/[-•*]/g,'').trim() : '';
 
   const diverseDescriptors = [
-    'Black woman', 'Latina woman', 'Asian woman', 'Middle Eastern woman',
-    'South Asian woman', 'mixed race woman', 'Indigenous woman', 'woman of color'
+    'elegant Black woman', 'sophisticated Latina woman', 'poised Asian woman',
+    'graceful Middle Eastern woman', 'distinguished South Asian woman',
+    'refined mixed race woman', 'confident Indigenous woman', 'radiant woman of color'
   ];
   const ethnicDesc = diverseDescriptors[Math.floor(Math.random() * diverseDescriptors.length)];
 
+  const currentYear = new Date().getFullYear();
+  const currentSeason = ['winter','spring','summer','fall'][Math.floor((new Date().getMonth()) / 3)];
+
   const prompt = [
-    'High-end fashion editorial photograph, full body shot, neutral studio background,',
-    'soft natural lighting, professional styling, Vogue magazine aesthetic,',
-    'featuring a beautiful ' + ethnicDesc + ' model, ages 25-55,',
-    lookText ? lookText.substring(0,120) + ',' : '',
-    keyText  ? 'outfit details: ' + keyText.substring(0,120) + ',' : '',
+    'Luxury fashion editorial photograph, full body shot, clean neutral studio background,',
+    'soft natural cinematic lighting, Vogue and Harper's Bazaar ' + currentYear + ' aesthetic,',
+    currentSeason + ' ' + currentYear + ' runway-inspired fashion, current season trends,',
+    'featuring a beautiful confident ' + ethnicDesc + ' in her 40s or 50s,',
+    'embodying grace, power and self-assurance, elevated and fashion-forward styling,',
+    'contemporary silhouettes: tailored blazers, wide-leg trousers, midi dresses, chic coordinates,',
+    'rich textures: silk, crepe, ponte, cashmere, structured suiting,',
+    'sophisticated color palette: rich neutrals, deep jewel tones, or one bold statement color,',
+    'the look of a successful stylish woman who is completely in command of her presence,',
+    'NOT casual NOT basic NOT dated NOT fast fashion — elevated current fashionable polished,',
+    'clothing fits impeccably — perfectly tailored to the body, nothing too tight too loose or ill-fitting,',
+    'sustainable luxury fashion aesthetic: investment pieces, slow fashion, conscious dressing,',
+    'garments with intention and longevity, quality craftsmanship visible in every stitch,',
+    lookText ? lookText.substring(0,100) + ',' : '',
+    keyText  ? 'wearing: ' + keyText.substring(0,120) + ',' : '',
     'occasion: ' + occasion + ',',
-    'elegant minimalist style, luxury fashion, sharp focus, 4K quality'
+    'sharp focus, professional photography, 4K photorealistic quality, no text or watermarks'
   ].filter(Boolean).join(' ');
 
   try {
