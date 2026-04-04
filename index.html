@@ -8171,7 +8171,7 @@ function vsGenerateShopLinks(advice, occasion, closet) {
   shopSection.style.display = 'block';
 }
 
-// ── Stable Diffusion 3.5 image generation ─────────────────────────────────
+// ── FLUX Pro image generation with Claude prompt engineering ──────────────
 async function vsGenerateOutfitImage(advice, occasion, closet, userRequest) {
   const imgSection = document.getElementById('vsImageSection');
   const imgEl      = document.getElementById('vsOutfitImage');
@@ -8180,13 +8180,7 @@ async function vsGenerateOutfitImage(advice, occasion, closet, userRequest) {
   imgSection.style.display = 'block';
   imgEl.style.display = 'none';
   imgStatus.style.display = 'block';
-  imgStatus.textContent = '✨ Generating outfit illustration…';
-
-  // Build a fashion-focused image prompt from the advice
-  const lookMatch = advice.match(/THE LOOK[:\s]*([\s\S]*?)(?=KEY PIECES|STYLING NOTES|MANTRA|$)/i);
-  const lookText  = lookMatch ? lookMatch[1].replace(/<[^>]+>/g,'').replace(/\n/g,' ').trim() : '';
-  const keyMatch  = advice.match(/KEY PIECES[:\s]*([\s\S]*?)(?=STYLING NOTES|MANTRA|$)/i);
-  const keyText   = keyMatch  ? keyMatch[1].replace(/<[^>]+>/g,'').replace(/\n/g,' ').replace(/[-•*]/g,'').trim() : '';
+  imgStatus.textContent = '✨ Designing your look…';
 
   const diverseDescriptors = [
     'elegant Black woman', 'sophisticated Latina woman', 'poised Asian woman',
@@ -8194,53 +8188,108 @@ async function vsGenerateOutfitImage(advice, occasion, closet, userRequest) {
     'refined mixed race woman', 'confident Indigenous woman', 'radiant woman of color'
   ];
   const ethnicDesc = diverseDescriptors[Math.floor(Math.random() * diverseDescriptors.length)];
-
   const currentYear = new Date().getFullYear();
   const currentSeason = ['winter','spring','summer','fall'][Math.floor((new Date().getMonth()) / 3)];
 
-  // Build garment description first so it dominates the prompt
-  console.log('lookText:', lookText);
-  console.log('keyText:', keyText);
-  console.log('userRequest:', userRequest);
+  try {
+    // Step 1: Ask Claude to write a precise FLUX image prompt
+    imgStatus.textContent = '✨ Styling your look…';
+    const promptRes = await fetch('/.netlify/functions/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: 'You are a professional fashion photographer and AI image prompt engineer. Write precise, detailed prompts for FLUX Pro image generation that produce accurate fashion editorial photographs. Always specify exactly the garment type requested. Never substitute garment types. Be very specific about clothing details.',
+        messages: [{
+          role: 'user',
+          content: `Write a FLUX Pro image generation prompt for a fashion editorial photograph based on this styling request:
 
-  // Use user request + key pieces to build garment description
-  const garmentDesc = [
-    userRequest ? userRequest.substring(0, 150) : '',
-    keyText ? keyText.substring(0, 200) : '',
-    lookText ? lookText.substring(0, 100) : ''
-  ].filter(Boolean).join(', ');
+CLIENT REQUEST: ${userRequest || ''}
+OUTFIT ADVICE: ${advice.replace(/<[^>]+>/g,'').substring(0, 400)}
+OCCASION: ${occasion}
 
-  // Detect specific garment type from user request and key pieces
-  const requestLower = (userRequest || '').toLowerCase();
-  const keyLower = (keyText || '').toLowerCase();
-  const combined = requestLower + ' ' + keyLower;
+Requirements for the prompt:
+- Start with the EXACT garment type from the client request (if they asked for a dress, the prompt must feature a dress)
+- Specify a ${ethnicDesc}, plus-size inclusive, woman in her 40s-50s
+- Full body shot from head to toe, clothing is the hero
+- ${currentSeason} ${currentYear} high fashion aesthetic
+- Inspired by Tom Ford, Celine, Max Mara — elevated not conservative
+- Include specific colors, fabrics, silhouette from the outfit advice
+- Elegant pointed heels or strappy sandals
+- Clean studio background with dramatic lighting
+- End with: sharp focus, 4K photorealistic fashion photography, no text
 
-  let garmentType = '';
-  if (combined.includes('dress')) garmentType = 'ONE SINGLE DRESS, NOT a skirt, NOT a suit, NOT separates — a DRESS';
-  else if (combined.includes('skirt')) garmentType = 'a skirt outfit, NOT pants, NOT a dress';
-  else if (combined.includes('suit')) garmentType = 'a tailored suit with trousers';
-  else if (combined.includes('trouser') || combined.includes('pant')) garmentType = 'trousers with a top or blazer, NOT a dress or skirt';
-  else if (combined.includes('jumpsuit') || combined.includes('jump suit')) garmentType = 'a jumpsuit, NOT a dress or suit';
-  else garmentType = garmentDesc || 'an elevated fashion outfit';
+Write ONLY the image prompt, nothing else. No explanation. Just the prompt text.`
+        }]
+      })
+    });
 
-  const prompt = [
-    // CLOTHING IS THE HERO — camera pulled back to show full outfit
-    'full length fashion editorial photograph, camera pulled back showing ENTIRE outfit from head to toe including shoes,',
-    'the CLOTHING is the focal point not the face, wide shot showing complete look,',
-    'woman wearing ' + garmentType + ',',
-    garmentDesc ? 'outfit details: ' + garmentDesc.substring(0, 180) + ',' : '',
-    'shot from 10 feet away to capture full body and complete garment,',
-    'high fashion, bold, fashion-forward, ' + currentYear + ' Vogue Italia editorial,',
-    ethnicDesc + ' in her 40s or 50s, powerful commanding presence,',
-    'luxurious sustainable fabrics — silk, satin, crepe, cashmere, fine Italian wool,',
-    'inspired by Tom Ford, Celine, Balenciaga — sleek sensual sophisticated,',
-    'impeccably fitted and tailored, clean sharp architectural lines,',
-    'bold accessories: sculptural earrings, pointed heels or strappy sandals,',
-    'dramatic studio lighting, sharp focus on clothing, 4K photorealistic, no text no watermarks'
-  ].filter(Boolean).join(' ');
+    const promptData = await promptRes.json();
+    const imagePrompt = promptData.content.filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+    console.log('Claude image prompt:', imagePrompt.substring(0, 200));
 
-  console.log('Final prompt:', prompt.substring(0, 300));
+    imgStatus.textContent = '✨ Generating your look…';
 
+    // Step 2: Send Claude's prompt to FLUX Pro
+    const startRes = await fetch('/.netlify/functions/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        service: 'replicate',
+        input: {
+          prompt: imagePrompt,
+          width: 640,
+          height: 1152,
+          steps: 25,
+          guidance: 3,
+          output_format: 'webp',
+          output_quality: 90,
+          safety_tolerance: 2,
+          prompt_upsampling: true
+        }
+      })
+    });
+
+    const rawText = await startRes.text();
+    const prediction = JSON.parse(rawText);
+    if (!prediction.id) throw new Error(prediction.detail || prediction.error || rawText);
+
+    // Poll for result
+    let result = prediction;
+    let attempts = 0;
+    while (result.status !== 'succeeded' && result.status !== 'failed' && attempts < 60) {
+      await new Promise(r => setTimeout(r, 2000));
+      const pollRes = await fetch('/.netlify/functions/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ service: 'replicate', predictionId: result.id })
+      });
+      result = await pollRes.json();
+      attempts++;
+      imgStatus.textContent = '✨ Rendering your look' + '.'.repeat((attempts % 3) + 1);
+    }
+
+    if (result.status === 'succeeded') {
+      let imgUrl = null;
+      if (Array.isArray(result.output)) imgUrl = result.output[0];
+      else if (typeof result.output === 'string') imgUrl = result.output;
+      else if (result.output && result.output.url) imgUrl = result.output.url;
+      else if (result.urls && result.urls.get) imgUrl = result.urls.get;
+      if (typeof imgUrl === 'object' && imgUrl && imgUrl.url) imgUrl = imgUrl.url;
+
+      if (imgUrl) {
+        imgEl.src = typeof imgUrl === 'string' ? imgUrl : String(imgUrl);
+        imgEl.style.display = 'block';
+        imgStatus.style.display = 'none';
+      } else {
+        imgStatus.textContent = '⚠️ Image URL not found — try again.';
+      }
+    } else {
+      imgStatus.textContent = '⚠️ Image generation timed out — try again.';
+    }
+  } catch(err) {
+    imgStatus.textContent = '⚠️ Could not generate image: ' + err.message;
+  }
+}
   try {
     // Start prediction via Netlify proxy
     const startRes = await fetch('/.netlify/functions/chat', {
