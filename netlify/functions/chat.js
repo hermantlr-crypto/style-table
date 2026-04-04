@@ -7,12 +7,12 @@ function makeRequest(options, payload) {
       res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => {
         resolve({
-          statusCode: res.statusCode,
+          statusCode: 200,
           headers: {
             'Access-Control-Allow-Origin': '*',
             'Content-Type': 'application/json'
           },
-          body: data || JSON.stringify({ error: 'Empty response' })
+          body: data || JSON.stringify({ error: 'Empty response from upstream' })
         });
       });
     });
@@ -29,7 +29,6 @@ function makeRequest(options, payload) {
 }
 
 exports.handler = async function(event) {
-  // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
@@ -69,7 +68,7 @@ exports.handler = async function(event) {
 
     if (body.predictionId) {
       // Poll existing prediction
-      const options = {
+      return makeRequest({
         hostname: 'api.replicate.com',
         path: '/v1/predictions/' + body.predictionId,
         method: 'GET',
@@ -77,25 +76,20 @@ exports.handler = async function(event) {
           'Authorization': 'Bearer ' + replicateKey,
           'Content-Type': 'application/json'
         }
-      };
-      return makeRequest(options, null);
+      }, null);
     } else {
-      // Start new prediction
-      const payload = JSON.stringify({
-        input: body.input
-      });
-      const options = {
+      // Use FLUX Pro model
+      const payload = JSON.stringify({ input: body.input });
+      return makeRequest({
         hostname: 'api.replicate.com',
-        path: '/v1/models/stability-ai/stable-diffusion-3.5-medium/predictions',
+        path: '/v1/models/black-forest-labs/flux-pro/predictions',
         method: 'POST',
         headers: {
           'Authorization': 'Bearer ' + replicateKey,
           'Content-Type': 'application/json',
-          'Prefer': 'wait',
           'Content-Length': Buffer.byteLength(payload)
         }
-      };
-      return makeRequest(options, payload);
+      }, payload);
     }
   }
 
@@ -116,7 +110,7 @@ exports.handler = async function(event) {
     messages: body.messages
   });
 
-  const options = {
+  return makeRequest({
     hostname: 'api.anthropic.com',
     path: '/v1/messages',
     method: 'POST',
@@ -126,7 +120,5 @@ exports.handler = async function(event) {
       'anthropic-version': '2023-06-01',
       'Content-Length': Buffer.byteLength(payload)
     }
-  };
-
-  return makeRequest(options, payload);
+  }, payload);
 };
