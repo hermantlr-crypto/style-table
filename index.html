@@ -8278,6 +8278,7 @@ Client request: ${req}`;
       })
     });
     const data = await response.json();
+    if (!data.content) throw new Error(data.error || JSON.stringify(data));
     const advice = data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
     const formatted = advice
       .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#D4A354;">$1</strong>')
