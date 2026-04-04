@@ -8236,10 +8236,24 @@ async function vsGenerateOutfitImage(advice, occasion, closet) {
       imgStatus.textContent = '✨ Styling your look' + '.'.repeat((attempts % 3) + 1);
     }
 
-    if (result.status === 'succeeded' && result.output && result.output[0]) {
-      imgEl.src = result.output[0];
-      imgEl.style.display = 'block';
-      imgStatus.style.display = 'none';
+    console.log('Final result:', JSON.stringify(result).substring(0, 200));
+    if (result.status === 'succeeded') {
+      // output can be array, string, or object with url
+      let imgUrl = null;
+      if (Array.isArray(result.output)) imgUrl = result.output[0];
+      else if (typeof result.output === 'string') imgUrl = result.output;
+      else if (result.output && result.output.url) imgUrl = result.output.url;
+      else if (result.urls && result.urls.get) imgUrl = result.urls.get;
+      
+      if (imgUrl) {
+        // Handle FileOutput objects from Replicate
+        if (typeof imgUrl === 'object' && imgUrl.url) imgUrl = imgUrl.url;
+        imgEl.src = typeof imgUrl === 'string' ? imgUrl : String(imgUrl);
+        imgEl.style.display = 'block';
+        imgStatus.style.display = 'none';
+      } else {
+        imgStatus.textContent = '⚠️ Image URL not found in response.';
+      }
     } else {
       imgStatus.textContent = '⚠️ Image generation timed out — try again.';
     }
