@@ -7305,20 +7305,6 @@ console.log('✅ Script loaded');
     console.log('✅ Planner visible!');
 });
 
-// Show admin button if logged in as Yo
-function vsCheckAdminAccess(email) {
-  const adminBtn = document.getElementById('vsAdminBtn');
-  if (adminBtn && email && email.toLowerCase() === 'yo@atthestyletable.com') {
-    adminBtn.style.display = 'block';
-    // Load admin pick list
-    setTimeout(async () => {
-      try {
-        const result = await window.storage.get('curated_picks');
-        const picks = result ? JSON.parse(result.value) : [];
-        vsRenderAdminList(picks);
-      } catch(e) {}
-    }, 500);
-  }
 }
 
 // Check if already accepted
@@ -8138,6 +8124,22 @@ function vsToggleTag(el) {
 }
 
 // ── Outfit Advisor ────────────────────────────────────────────────────────────
+// Show admin button if logged in as Yo
+function vsCheckAdminAccess(email) {
+  const adminBtn = document.getElementById('vsAdminBtn');
+  if (adminBtn && email && email.toLowerCase() === 'yo@atthestyletable.com') {
+    adminBtn.style.display = 'block';
+    // Load admin pick list
+    setTimeout(async () => {
+      try {
+        const result = await window.storage.get('curated_picks');
+        const picks = result ? JSON.parse(result.value) : [];
+        vsRenderAdminList(picks);
+      } catch(e) {}
+    }, 500);
+  }
+
+
 // ── Yo's Curated Picks Admin & Display ────────────────────────────────────
 
 // Load curated picks from storage and display them
