@@ -8379,14 +8379,79 @@ function vsRenderAdminList(picks) {
     return; 
   }
   list.innerHTML = picks.map(p => `
-    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #1a1a1a;">
+    <div style="display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid #1a1a1a;">
       <div style="flex:1;min-width:0;">
         <div style="color:#aaa;font-size:10px;font-weight:700;">${p.name}</div>
         <div style="color:#555;font-size:9px;">${p.retailer||''} ${p.price||''} ${p.occasion ? '· '+p.occasion : ''}</div>
       </div>
+      <button onclick="vsEditPick(${p.id})" style="background:#1a2a1a;border:1px solid #2a4a2a;border-radius:4px;color:#4a4;font-size:9px;padding:3px 8px;cursor:pointer;flex-shrink:0;">Edit</button>
       <button onclick="vsRemovePick(${p.id})" style="background:#300;border:1px solid #500;border-radius:4px;color:#f66;font-size:9px;padding:3px 8px;cursor:pointer;flex-shrink:0;">Remove</button>
     </div>
   `).join('');
+}
+
+async function vsEditPick(id) {
+  try {
+    const { data: picks } = await sb.from('curated_picks').select('*').eq('id', id);
+    if (!picks || !picks.length) return;
+    const p = picks[0];
+
+    // Populate form with existing values
+    document.getElementById('vsPickName').value = p.name || '';
+    document.getElementById('vsPickUrl').value = p.url || '';
+    document.getElementById('vsPickRetailer').value = p.retailer || '';
+    document.getElementById('vsPickPrice').value = p.price || '';
+    document.getElementById('vsPickImage').value = p.image || '';
+    document.getElementById('vsPickOccasion').value = p.occasion || '';
+
+    // Change ADD button to UPDATE
+    const addBtn = document.querySelector('[onclick="vsAddPick()"]');
+    if (addBtn) {
+      addBtn.textContent = '✓ UPDATE PICK';
+      addBtn.onclick = () => vsUpdatePick(id);
+    }
+
+    // Scroll to form
+    document.getElementById('vsPickName').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('vsPickName').focus();
+  } catch(e) {
+    alert('Error loading pick: ' + e.message);
+  }
+}
+
+async function vsUpdatePick(id) {
+  const name = document.getElementById('vsPickName').value.trim();
+  const url = document.getElementById('vsPickUrl').value.trim();
+  const retailer = document.getElementById('vsPickRetailer').value.trim();
+  const price = document.getElementById('vsPickPrice').value.trim();
+  const image = document.getElementById('vsPickImage').value.trim();
+  const occasion = document.getElementById('vsPickOccasion').value.trim();
+
+  if (!name || !url) { alert('Name and URL are required.'); return; }
+
+  try {
+    const { error } = await sb.from('curated_picks').update({ name, url, retailer, price, image, occasion }).eq('id', id);
+    if (error) throw error;
+
+    // Clear form and reset button
+    ['vsPickName','vsPickUrl','vsPickRetailer','vsPickPrice','vsPickImage','vsPickOccasion'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    const addBtn = document.querySelector('[onclick]');
+    const btns = document.querySelectorAll('#vsAdminPanel button');
+    btns.forEach(btn => {
+      if (btn.textContent.includes('UPDATE PICK')) {
+        btn.textContent = '+ ADD PICK';
+        btn.onclick = vsAddPick;
+      }
+    });
+
+    alert('Pick updated! ✓');
+    vsLoadCuratedPicks();
+    vsLoadAdminList();
+  } catch(e) {
+    alert('Error updating pick: ' + e.message);
+  }
 }
 
 // Load picks on page ready
