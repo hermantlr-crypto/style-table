@@ -8272,12 +8272,13 @@ CRITICAL RULES — follow exactly:
 2. CLIENT ASKED FOR SUIT = model wears suit with trousers only.
 3. CLIENT ASKED FOR PANTS = model wears pants not a dress.
 4. Never add garments the client did not request.
-5. Start with: "Full length editorial photo of a ${ethnicDesc} curvy woman in her 40s wearing [EXACT garment from client request in specific color and fabric from advice]..."
-6. Camera pulled back wide — full body head to toe including shoes visible.
-7. Clothing is the hero not the face. Wide shot not a portrait.
-8. Style: Tom Ford Celine Max Mara — confident sexy elevated modern. NOT conservative NOT covered up.
-9. Dramatic studio lighting. Sharp focus on clothing. 4K photorealistic. No text no watermarks.
-10. ${currentSeason} ${currentYear} high fashion aesthetic.
+5. Start with: "Full length editorial photo of a ${ethnicDesc} woman in her 40s wearing [EXACT garment — if client said colorful use bold vibrant print or multiple colors, if client said specific color use it exactly]..."
+6. HONOR the client energy: colorful = bold prints/colors, youthful = fresh modern silhouette, classy = refined not revealing.
+7. Camera pulled back wide — full body head to toe including shoes visible.
+8. Clothing is the hero not the face. Wide shot not a portrait.
+9. Style: Tom Ford Celine Max Mara — confident elevated modern. Match the vibe the client asked for.
+10. Dramatic studio lighting. Sharp focus on clothing. 4K photorealistic. No text no watermarks.
+11. ${currentSeason} ${currentYear} high fashion aesthetic.
 
 Return ONLY the raw prompt. No explanation. No quotes. Just the prompt.`
         }]
@@ -8286,7 +8287,13 @@ Return ONLY the raw prompt. No explanation. No quotes. Just the prompt.`
 
     const promptData = await promptRes.json();
     const imagePrompt = promptData.content.filter(b=>b.type==='text').map(b=>b.text).join('').trim();
-    console.log('Claude image prompt:', imagePrompt.substring(0, 200));
+    console.log('Claude image prompt FULL:', imagePrompt);
+    
+    // Safety check - if prompt doesn't mention a person/woman, it's wrong
+    const hasPersonRef = /woman|model|person|figure|wearing/i.test(imagePrompt);
+    if (!hasPersonRef || imagePrompt.length < 50) {
+      throw new Error('Invalid prompt generated: ' + imagePrompt.substring(0, 100));
+    }
 
     imgStatus.textContent = '✨ Generating your look…';
 
@@ -8294,10 +8301,15 @@ Return ONLY the raw prompt. No explanation. No quotes. Just the prompt.`
     const startRes = await fetch('/.netlify/functions/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      // Ensure prompt is fashion-focused
+      const safePrompt = imagePrompt.length > 50 && /woman|model|wearing/i.test(imagePrompt) 
+        ? imagePrompt 
+        : `Full length editorial photo of a ${ethnicDesc} woman in her 40s wearing a ${userRequest || 'elegant dress'}, full body shot head to toe, Tom Ford Celine aesthetic, dramatic studio lighting, 4K photorealistic fashion photography, no text`;
+      
       body: JSON.stringify({
         service: 'replicate',
         input: {
-          prompt: imagePrompt,
+          prompt: safePrompt,
           width: 640,
           height: 1152,
           steps: 25,
