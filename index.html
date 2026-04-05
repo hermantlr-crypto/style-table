@@ -1158,6 +1158,7 @@ self.addEventListener('fetch', e => {
                 <button class="nav-tab" onclick="showPage('travel')">TRAVEL</button>
                 <button class="nav-tab" onclick="showPage('contacts')">CONTACTS</button>
                 <button class="nav-tab" onclick="showPage('months')">CALENDAR</button>
+                <button class="nav-tab" onclick="showPage('yos-picks');loadYosPicks()" style="color:#D4A354;font-weight:700;">YO'S PICKS</button>
             </div>
         </div>
 
@@ -7723,6 +7724,39 @@ document.addEventListener('click', (e) => {
 
 
 <!-- ======================================================= -->
+
+        <!-- YO'S PICKS PAGE -->
+        <div class="page-content" id="yos-picks">
+          <h1 class="page-title" style="color:#D4A354;">Yo's Picks</h1>
+          <p class="page-subtitle">Personally curated pieces by Yo Taylor — click any item to shop</p>
+
+          <!-- Occasion filters -->
+          <div id="yosPicksFilters" style="display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 20px;">
+            <button onclick="filterYosPicks('all')" class="yos-filter active" data-filter="all" style="background:rgba(212,163,84,0.15);border:1px solid #D4A354;border-radius:20px;color:#D4A354;padding:6px 16px;font-size:11px;cursor:pointer;font-family:Montserrat,sans-serif;font-weight:700;letter-spacing:0.5px;">ALL</button>
+            <button onclick="filterYosPicks('Business Meeting')" class="yos-filter" data-filter="Business Meeting" style="background:#111;border:1px solid #333;border-radius:20px;color:#888;padding:6px 16px;font-size:11px;cursor:pointer;font-family:Montserrat,sans-serif;font-weight:600;letter-spacing:0.5px;">BUSINESS</button>
+            <button onclick="filterYosPicks('Gala/Formal')" class="yos-filter" data-filter="Gala/Formal" style="background:#111;border:1px solid #333;border-radius:20px;color:#888;padding:6px 16px;font-size:11px;cursor:pointer;font-family:Montserrat,sans-serif;font-weight:600;letter-spacing:0.5px;">GALA / FORMAL</button>
+            <button onclick="filterYosPicks('Date Night')" class="yos-filter" data-filter="Date Night" style="background:#111;border:1px solid #333;border-radius:20px;color:#888;padding:6px 16px;font-size:11px;cursor:pointer;font-family:Montserrat,sans-serif;font-weight:600;letter-spacing:0.5px;">DATE NIGHT</button>
+            <button onclick="filterYosPicks('Brunch/Casual Chic')" class="yos-filter" data-filter="Brunch/Casual Chic" style="background:#111;border:1px solid #333;border-radius:20px;color:#888;padding:6px 16px;font-size:11px;cursor:pointer;font-family:Montserrat,sans-serif;font-weight:600;letter-spacing:0.5px;">BRUNCH</button>
+            <button onclick="filterYosPicks('Travel')" class="yos-filter" data-filter="Travel" style="background:#111;border:1px solid #333;border-radius:20px;color:#888;padding:6px 16px;font-size:11px;cursor:pointer;font-family:Montserrat,sans-serif;font-weight:600;letter-spacing:0.5px;">TRAVEL</button>
+            <button onclick="filterYosPicks('Weekend/Errand')" class="yos-filter" data-filter="Weekend/Errand" style="background:#111;border:1px solid #333;border-radius:20px;color:#888;padding:6px 16px;font-size:11px;cursor:pointer;font-family:Montserrat,sans-serif;font-weight:600;letter-spacing:0.5px;">WEEKEND</button>
+          </div>
+
+          <!-- Loading state -->
+          <div id="yosPicksLoading" style="text-align:center;color:#D4A354;padding:40px;font-size:11px;letter-spacing:1px;">
+            <div style="font-size:30px;margin-bottom:10px;">✨</div>
+            Loading Yo's picks…
+          </div>
+
+          <!-- Grid -->
+          <div id="yosPicksGrid" style="display:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;"></div>
+
+          <!-- Empty state -->
+          <div id="yosPicksEmpty" style="display:none;text-align:center;color:#555;padding:60px 20px;">
+            <div style="font-size:40px;margin-bottom:12px;">👜</div>
+            <div style="font-size:12px;">No picks in this category yet.</div>
+          </div>
+        </div>
+
 <!-- VOICE STYLIST OVERLAY — injected into At The Style Table -->
 <!-- ======================================================= -->
 
@@ -7930,6 +7964,12 @@ document.addEventListener('click', (e) => {
     <!-- Advice output -->
     <div id="vsAdviceOutput" style="display:none;background:#1a1a1a;border:1px solid #D4A354;border-radius:8px;padding:14px;"></div>
 
+    <!-- Yo's Matched Picks -->
+    <div id="vsMatchedPicks" style="display:none;margin-top:4px;">
+      <div style="color:#D4A354;font-size:10px;font-weight:700;letter-spacing:1.5px;margin-bottom:8px;">✨ YO'S PICKS FOR YOU</div>
+      <div id="vsMatchedPicksList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+
     <!-- Shop This Look -->
     <div id="vsShopSection" style="display:none;">
       <div style="color:#D4A354;font-size:10px;font-weight:700;letter-spacing:1.5px;margin-bottom:8px;">🛍️ SHOP THIS LOOK</div>
@@ -8011,6 +8051,75 @@ document.addEventListener('click', (e) => {
 </div>
 
 <script>
+// ── Yo's Picks Page ────────────────────────────────────────────────────────
+let allYosPicks = [];
+
+async function loadYosPicks() {
+  document.getElementById('yosPicksLoading').style.display = 'block';
+  document.getElementById('yosPicksGrid').style.display = 'none';
+  document.getElementById('yosPicksEmpty').style.display = 'none';
+  try {
+    const { data, error } = await sb.from('curated_picks').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    allYosPicks = data || [];
+    renderYosPicks(allYosPicks);
+  } catch(e) {
+    document.getElementById('yosPicksLoading').innerHTML = '<div style="color:#f66;">Could not load picks. Please try again.</div>';
+  }
+}
+
+function renderYosPicks(picks) {
+  document.getElementById('yosPicksLoading').style.display = 'none';
+  const grid = document.getElementById('yosPicksGrid');
+  const empty = document.getElementById('yosPicksEmpty');
+  if (!picks || !picks.length) {
+    grid.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+  grid.innerHTML = picks.map(pick => `
+    <a href="${pick.url}" target="_blank" rel="noopener" style="
+      background:#111;border:1px solid #222;border-radius:10px;
+      overflow:hidden;text-decoration:none;transition:all 0.2s;
+      display:flex;flex-direction:column;
+    " onmouseover="this.style.borderColor='#D4A354';this.style.transform='translateY(-2px)'"
+       onmouseout="this.style.borderColor='#222';this.style.transform='translateY(0)'">
+      <div style="width:100%;padding-top:100%;position:relative;background:#1a1a1a;overflow:hidden;">
+        ${pick.image 
+          ? `<img src="${pick.image}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;height:100%;font-size:40px;\'>👜</div>'" />`
+          : '<div style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;">👜</div>'
+        }
+      </div>
+      <div style="padding:10px;">
+        <div style="color:#eee;font-size:11px;font-weight:700;margin-bottom:3px;line-height:1.3;">${pick.name}</div>
+        <div style="color:#888;font-size:10px;margin-bottom:6px;">${pick.retailer || ''} ${pick.price ? '· <span style="color:#D4A354;">' + pick.price + '</span>' : ''}</div>
+        ${pick.occasion ? `<div style="background:rgba(212,163,84,0.1);border:1px solid rgba(212,163,84,0.3);border-radius:10px;color:#D4A354;font-size:8px;padding:2px 8px;display:inline-block;letter-spacing:0.5px;font-weight:700;">${pick.occasion}</div>` : ''}
+        <div style="color:#D4A354;font-size:9px;font-weight:700;margin-top:6px;letter-spacing:0.5px;">SHOP NOW →</div>
+      </div>
+    </a>
+  `).join('');
+}
+
+function filterYosPicks(occasion) {
+  // Update filter buttons
+  document.querySelectorAll('.yos-filter').forEach(btn => {
+    const isActive = btn.dataset.filter === occasion;
+    btn.style.background = isActive ? 'rgba(212,163,84,0.15)' : '#111';
+    btn.style.borderColor = isActive ? '#D4A354' : '#333';
+    btn.style.color = isActive ? '#D4A354' : '#888';
+    btn.style.fontWeight = isActive ? '700' : '600';
+  });
+  // Filter picks
+  if (occasion === 'all') {
+    renderYosPicks(allYosPicks);
+  } else {
+    const filtered = allYosPicks.filter(p => p.occasion && p.occasion.toLowerCase().includes(occasion.toLowerCase()));
+    renderYosPicks(filtered);
+  }
+}
+
 // ── Voice Stylist helpers ────────────────────────────────────────────────────
 
 // Tab switching
@@ -8309,6 +8418,71 @@ function vsToggleMicField(fieldId, btnId, statusId) {
   vsFieldRecognition.start();
 }
 
+// ── Match Yo's picks to outfit advice ────────────────────────────────────
+async function vsMatchYosPicks(advice, occasion, userRequest) {
+  const section = document.getElementById('vsMatchedPicks');
+  const list = document.getElementById('vsMatchedPicksList');
+  section.style.display = 'none';
+
+  try {
+    // Get all of Yo's picks from Supabase
+    const { data: picks } = await sb.from('curated_picks').select('*');
+    if (!picks || !picks.length) return;
+
+    // Ask Claude to find matching picks
+    const res = await fetch('/.netlify/functions/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: 'You are a fashion stylist matching curated items to outfit recommendations. Return ONLY a JSON array of matching item IDs. No explanation.',
+        messages: [{
+          role: 'user',
+          content: `Given this outfit advice and available curated picks, which picks best match? Return up to 3 matching item IDs as a JSON array like [1, 2, 3]. If none match well, return [].
+
+OUTFIT ADVICE: ${advice.replace(/<[^>]+>/g,'').substring(0,300)}
+OCCASION: ${occasion}
+CLIENT REQUEST: ${userRequest || ''}
+
+AVAILABLE PICKS:
+${picks.map(p => `ID:${p.id} | ${p.name} | ${p.retailer||''} | Occasion:${p.occasion||'any'}`).join('
+')}
+
+Return ONLY the JSON array.`
+        }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content.filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+    const match = text.match(/\[[\d,\s]*\]/);
+    if (!match) return;
+
+    const matchedIds = JSON.parse(match[0]);
+    const matched = picks.filter(p => matchedIds.includes(p.id) || matchedIds.includes(Number(p.id)));
+    if (!matched.length) return;
+
+    list.innerHTML = matched.map(pick => `
+      <a href="${pick.url}" target="_blank" rel="noopener" style="
+        display:flex;align-items:center;gap:10px;
+        background:rgba(212,163,84,0.05);border:1px solid rgba(212,163,84,0.3);border-radius:8px;
+        padding:10px;text-decoration:none;transition:all 0.2s;
+      " onmouseover="this.style.borderColor='#D4A354';this.style.background='rgba(212,163,84,0.1)'"
+         onmouseout="this.style.borderColor='rgba(212,163,84,0.3)';this.style.background='rgba(212,163,84,0.05)'">
+        ${pick.image ? `<img src="${pick.image}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;flex-shrink:0;" onerror="this.style.display='none'" />` : '<div style="width:56px;height:56px;background:#1a1a1a;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;">👜</div>'}
+        <div style="flex:1;min-width:0;">
+          <div style="color:#eee;font-size:11px;font-weight:700;margin-bottom:2px;">${pick.name}</div>
+          <div style="color:#888;font-size:9px;margin-bottom:4px;">${pick.retailer||''} ${pick.price ? '· <span style="color:#D4A354;font-weight:700;">' + pick.price + '</span>' : ''}</div>
+          <div style="color:#D4A354;font-size:9px;font-weight:700;letter-spacing:0.5px;">✓ YO'S PICK — SHOP NOW →</div>
+        </div>
+      </a>
+    `).join('');
+
+    section.style.display = 'block';
+  } catch(e) {
+    console.error('Error matching picks:', e);
+  }
+}
+
 // ── Shop link builder ──────────────────────────────────────────────────────
 async function vsGenerateShopLinks(advice, occasion, closet) {
   const shopSection = document.getElementById('vsShopSection');
@@ -8593,6 +8767,7 @@ async function vsGetOutfitAdvice() {
   document.getElementById('vsAdviceOutput').style.display  = 'none';
   document.getElementById('vsShopSection').style.display   = 'none';
   document.getElementById('vsImageSection').style.display  = 'none';
+  document.getElementById('vsMatchedPicks').style.display  = 'none';
 
   const systemPrompt = `You are Yo Taylor, a luxury minimalist wardrobe strategist known for concierge-level styling. 
 Your philosophy: quality over quantity, intentional pieces, timeless versatility, confidence through simplicity. 
@@ -8623,7 +8798,8 @@ Client request: ${req}`;
       .replace(/\n/g, '<br>');
     document.getElementById('vsAdviceOutput').innerHTML = `<div style="color:#ddd;font-size:12px;line-height:1.8;">${formatted}</div>`;
     document.getElementById('vsAdviceOutput').style.display = 'block';
-    // Generate shop links and outfit image
+    // Generate matched picks, shop links and outfit image
+    vsMatchYosPicks(advice, tags, req);
     vsGenerateShopLinks(advice, tags, closet);
     vsGenerateOutfitImage(advice, tags, closet, req);
   } catch(err) {
