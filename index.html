@@ -7761,7 +7761,7 @@ document.addEventListener('click', (e) => {
 <!-- ======================================================= -->
 
 <!-- Floating Voice Stylist Button (bottom-left) -->
-<button id="voiceStylistBtn" onclick="document.getElementById('voiceStylistPanel').style.display='flex';setTimeout(vsLoadCuratedPicks,300)" title="Voice Stylist" style="
+<button id="voiceStylistBtn" onclick="document.getElementById('voiceStylistPanel').style.display='flex';setTimeout(loadYosPicks,300)" title="Voice Stylist" style="
   position:fixed;
   bottom:30px;
   left:30px;
@@ -8129,7 +8129,7 @@ function vsShowTab(n) {
   document.getElementById('vsPanel1').style.flexDirection = 'column';
   document.getElementById('vsPanel2').style.flexDirection = 'column';
   // Reload curated picks when Outfit Advisor tab opens
-  if (n === 2) vsLoadCuratedPicks();
+  if (n === 2) { if(typeof loadYosPicks==='function') loadYosPicks(); }
   document.getElementById('vsTab1').style.background   = n===1 ? '#1a1a1a' : 'transparent';
   document.getElementById('vsTab1').style.color        = n===1 ? '#D4A354' : '#666';
   document.getElementById('vsTab1').style.borderBottom = n===1 ? '2px solid #D4A354' : '2px solid transparent';
@@ -8269,13 +8269,18 @@ function vsCheckAdminAccess(email) {
 // ── Yo's Curated Picks — Supabase backed ──────────────────────────────────
 
 async function vsLoadCuratedPicks() {
-  try {
-    const { data, error } = await sb.from('curated_picks').select('*').order('created_at', { ascending: false });
-    if (error) throw error;
+  // Delegate to main loadYosPicks if available, otherwise load directly
+  if (typeof loadYosPicks === 'function') {
+    const { data } = await sb.from('curated_picks').select('*').order('created_at', { ascending: false });
     vsRenderCuratedPicks(data || []);
-  } catch(e) {
-    console.error('Error loading picks:', e);
-    vsRenderCuratedPicks([]);
+  } else {
+    try {
+      const { data, error } = await sb.from('curated_picks').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      vsRenderCuratedPicks(data || []);
+    } catch(e) {
+      vsRenderCuratedPicks([]);
+    }
   }
 }
 
@@ -8444,7 +8449,7 @@ OCCASION: ${occasion}
 CLIENT REQUEST: ${userRequest || ''}
 
 AVAILABLE PICKS:
-${picks.map(p => `ID:${p.id} | ${p.name} | ${p.retailer||''} | Occasion:${p.occasion||'any'}`).join('
+${picks.map(p => 'ID:' + p.id + ' | ' + p.name + ' | ' + (p.retailer||'') + ' | Occasion:' + (p.occasion||'any')).join('
 ')}
 
 Return ONLY the JSON array.`
