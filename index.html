@@ -1,6 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<style id="style-fixes">
+/* Nav tab scrolling fix */
+.nav-tabs {
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.nav-tabs::-webkit-scrollbar { display: none !important; }
+/* Hide all picks in advisor */
+#vsCuratedSection { display: none !important; }
+</style>
+
 <script>
 // At The Style Table — API Configuration
 window.ANTHROPIC_KEY = ""; // Key handled server-side via Netlify function
@@ -283,12 +296,14 @@ self.addEventListener('fetch', e => {
             left: 0;
             right: 0;
             background-color: var(--dark-gray);
-            padding: 15px 30px;
+            padding: 8px 16px;
             display: none;
             justify-content: space-between;
             align-items: center;
             z-index: 1000;
             border-bottom: 1px solid var(--medium-gray);
+            overflow: visible;
+            gap: 8px;
         }
 
         .header-nav.visible { display: flex; }
@@ -300,7 +315,7 @@ self.addEventListener('fetch', e => {
             letter-spacing: 2px;
         }
 
-        .nav-tabs { display: flex; gap: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; } .nav-tabs::-webkit-scrollbar { display: none; }
+        .nav-tabs { display: flex; gap: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; flex: 1; min-width: 0; } .nav-tabs::-webkit-scrollbar { display: none; }
 
         /* Mobile Navigation Dropdown */
         .mobile-nav-dropdown {
@@ -1148,7 +1163,7 @@ self.addEventListener('fetch', e => {
                 </select>
             </div>
             
-            <div class="nav-tabs" style="flex-wrap:wrap;overflow:visible;">
+            <div class="nav-tabs" style="flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;">
                 <button class="nav-tab active" onclick="showPage('how-to-use')">HOW TO USE</button>
                 <button class="nav-tab" onclick="showPage('events')">EVENTS</button>
                 <button class="nav-tab" onclick="showPage('closet')">CLOSET</button>
