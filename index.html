@@ -300,7 +300,7 @@ self.addEventListener('fetch', e => {
             letter-spacing: 2px;
         }
 
-        .nav-tabs { display: flex; gap: 0; flex-wrap: wrap; }
+        .nav-tabs { display: flex; gap: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; } .nav-tabs::-webkit-scrollbar { display: none; }
 
         /* Mobile Navigation Dropdown */
         .mobile-nav-dropdown {
@@ -1154,11 +1154,11 @@ self.addEventListener('fetch', e => {
                 <button class="nav-tab" onclick="showPage('closet')">CLOSET</button>
                 <button class="nav-tab" onclick="showPage('boards')">BOARDS</button>
                 <button class="nav-tab" onclick="showPage('journal')">JOURNAL</button>
-                <button class="nav-tab" onclick="showPage('measurements')">MEASUREMENTS</button>
+                <button class="nav-tab" onclick="showPage('measurements')">MEASURE</button>
                 <button class="nav-tab" onclick="showPage('travel')">TRAVEL</button>
                 <button class="nav-tab" onclick="showPage('contacts')">CONTACTS</button>
                 <button class="nav-tab" onclick="showPage('months')">CALENDAR</button>
-                <button class="nav-tab" onclick="showPage('yos-picks');loadYosPicks()" style="color:#D4A354;font-weight:700;border-color:#D4A354;">✨ YO'S PICKS</button>
+                <button class="nav-tab" onclick="showPage('yos-picks');loadYosPicks()" style="color:#D4A354;font-weight:700;border-left:2px solid #D4A354;white-space:nowrap;">YO'S PICKS</button>
             </div>
         </div>
 
