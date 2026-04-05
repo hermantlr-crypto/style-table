@@ -95,7 +95,12 @@ self.addEventListener('fetch', e => {
 
     <script>
         // SMS Subscribe function in head for global access
-        console.log('✅ Loading subscribeSMS function...');// Validation
+        console.log('✅ Loading subscribeSMS function...');
+        window.subscribeSMS = async function() {
+            const phone = document.getElementById('optinPhone')?.value?.replace(/\D/g,'') || '';
+            const consent = document.getElementById('optinConsent')?.checked;
+            const statusDiv = document.getElementById('optinStatus') || document.createElement('div');
+            // Validation
             if (!phone || phone.length !== 10) {
                 console.log('❌ Invalid phone');
                 statusDiv.style.display = 'block';
@@ -168,6 +173,7 @@ self.addEventListener('fetch', e => {
             }
         };
         
+        }; // end subscribeSMS
         console.log('✅ subscribeSMS defined:', typeof window.subscribeSMS);
     </script>
 </head>
@@ -7293,19 +7299,20 @@ console.log('✅ Script loaded');
 
 
 // Accept button handler
-
-    
-    // Save acceptance
-    localStorage.setItem('terms_accepted', 'true');
-    console.log('✅ Saved to localStorage');
-    
-    // Hide modal and show planner
-    document.getElementById('termsModal').classList.add('hidden');
-    document.getElementById('plannerDiv').classList.remove('hidden');
-    console.log('✅ Planner visible!');
+document.addEventListener('DOMContentLoaded', function() {
+  const acceptBtn = document.getElementById('acceptTermsBtn');
+  if (acceptBtn) {
+    acceptBtn.addEventListener('click', function() {
+      // Save acceptance
+      localStorage.setItem('terms_accepted', 'true');
+      console.log('✅ Saved to localStorage');
+      // Hide modal and show planner
+      document.getElementById('termsModal').classList.add('hidden');
+      document.getElementById('plannerDiv').classList.remove('hidden');
+      console.log('✅ Planner visible!');
+    });
+  }
 });
-
-}
 
 // Check if already accepted
 addEventListener('DOMContentLoaded', function() {
