@@ -8435,6 +8435,8 @@ async function vsMatchYosPicks(advice, occasion, userRequest) {
     if (!picks || !picks.length) return;
 
     // Ask Claude to find matching picks
+    const cleanAdvice = advice.replace(/<[^>]+>/g,'').substring(0,300);
+    const picksText = picks.map(p => 'ID:' + p.id + ' | ' + p.name + ' | ' + (p.retailer||'') + ' | Occasion:' + (p.occasion||'any')).join('\n');
     const res = await fetch('/.netlify/functions/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -8444,13 +8446,12 @@ async function vsMatchYosPicks(advice, occasion, userRequest) {
           role: 'user',
           content: `Given this outfit advice and available curated picks, which picks best match? Return up to 3 matching item IDs as a JSON array like [1, 2, 3]. If none match well, return [].
 
-OUTFIT ADVICE: ${advice.replace(/<[^>]+>/g,'').substring(0,300)}
+OUTFIT ADVICE: ${cleanAdvice}
 OCCASION: ${occasion}
 CLIENT REQUEST: ${userRequest || ''}
 
 AVAILABLE PICKS:
-${picks.map(p => 'ID:' + p.id + ' | ' + p.name + ' | ' + (p.retailer||'') + ' | Occasion:' + (p.occasion||'any')).join('
-')}
+${picksText}
 
 Return ONLY the JSON array.`
         }]
