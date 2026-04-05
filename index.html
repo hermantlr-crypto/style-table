@@ -8111,14 +8111,18 @@ async function vsFetchFromUrl() {
     if (data.retailer && !document.getElementById('vsPickRetailer').value) {
       document.getElementById('vsPickRetailer').value = data.retailer;
     }
-    if (data.image) {
+    if (data.image && data.image.startsWith('http') && !data.image.includes('stylists.shop/Hi')) {
       document.getElementById('vsPickImage').value = data.image;
       // Show preview
       const preview = document.getElementById('vsPickImagePreview');
       const thumb = document.getElementById('vsPickImageThumb');
       thumb.src = data.image;
+      thumb.onerror = () => { preview.style.display = 'none'; document.getElementById('vsPickImage').value = ''; };
       preview.style.display = 'flex';
       preview.style.alignItems = 'center';
+    } else {
+      document.getElementById('vsPickImage').value = '';
+      document.getElementById('vsPickImagePreview').style.display = 'none';
     }
 
     btn.textContent = '✓ Done';
@@ -8491,6 +8495,15 @@ async function vsAddPick() {
     ['vsPickName','vsPickUrl','vsPickRetailer','vsPickPrice','vsPickImage','vsPickOccasion'].forEach(id => {
       document.getElementById(id).value = '';
     });
+    // Hide image preview
+    document.getElementById('vsPickImagePreview').style.display = 'none';
+    document.getElementById('vsPickImageThumb').src = '';
+    // Reset ADD button in case it was in edit mode
+    const addBtn = document.querySelector('#vsAdminPanel button[style*="background:linear-gradient"]');
+    if (addBtn && addBtn.textContent.includes('UPDATE')) {
+      addBtn.textContent = '+ ADD PICK';
+      addBtn.onclick = vsAddPick;
+    }
     alert('Pick added! ✓');
     vsLoadCuratedPicks();
     vsLoadAdminList();
