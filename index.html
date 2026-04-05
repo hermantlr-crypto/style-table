@@ -8298,14 +8298,14 @@ Return ONLY the raw prompt. No explanation. No quotes. Just the prompt.`
     imgStatus.textContent = '✨ Generating your look…';
 
     // Step 2: Send Claude's prompt to FLUX Pro
+    // Ensure prompt is fashion-focused
+    const safePrompt = imagePrompt.length > 50 && /woman|model|wearing/i.test(imagePrompt) 
+      ? imagePrompt 
+      : `Full length editorial photo of a ${ethnicDesc} woman in her 40s wearing a ${userRequest || 'elegant dress'}, full body shot head to toe, Tom Ford Celine aesthetic, dramatic studio lighting, 4K photorealistic fashion photography, no text`;
+
     const startRes = await fetch('/.netlify/functions/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      // Ensure prompt is fashion-focused
-      const safePrompt = imagePrompt.length > 50 && /woman|model|wearing/i.test(imagePrompt) 
-        ? imagePrompt 
-        : `Full length editorial photo of a ${ethnicDesc} woman in her 40s wearing a ${userRequest || 'elegant dress'}, full body shot head to toe, Tom Ford Celine aesthetic, dramatic studio lighting, 4K photorealistic fashion photography, no text`;
-      
       body: JSON.stringify({
         service: 'replicate',
         input: {
