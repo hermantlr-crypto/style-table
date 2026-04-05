@@ -7468,6 +7468,9 @@ addEventListener('DOMContentLoaded', function() {
 </div>
 
 <script>
+
+
+
 // ── Supabase Init ──────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://xayulbqneuiqoqobkqvy.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_KsC0B7RmW7FCSj4uqTAtVg_ZybZ_TYX';
@@ -7556,6 +7559,8 @@ async function authForgotPassword() {
 }
 
 // ── On Signed In ───────────────────────────────────────────────────────────
+
+
 async function onSignedIn(user) {
   currentUser = user;
   document.getElementById('authScreen').style.display = 'none';
@@ -7566,7 +7571,10 @@ async function onSignedIn(user) {
   document.getElementById('userMenuEmail').textContent = email;
   document.getElementById('userDropdownName').textContent = name;
   // Show admin button for Yo
-  vsCheckAdminAccess(email);
+  const adminBtn = document.getElementById('vsAdminBtn');
+  if (adminBtn && email && email.toLowerCase() === 'yo@atthestyletable.com') {
+    adminBtn.style.display = 'block';
+  }
 
   // Ensure the planner div is visible (handle terms modal)
   const plannerDiv = document.getElementById('plannerDiv');
@@ -8124,8 +8132,7 @@ function vsToggleTag(el) {
 }
 
 // ── Outfit Advisor ────────────────────────────────────────────────────────────
-// Show admin button if logged in as Yo
-function vsCheckAdminAccess(email) {
+// Show admin button if logged in as Yofunction vsCheckAdminAccess(email) {
   const adminBtn = document.getElementById('vsAdminBtn');
   if (adminBtn && email && email.toLowerCase() === 'yo@atthestyletable.com') {
     adminBtn.style.display = 'block';
@@ -8156,7 +8163,7 @@ async function vsLoadCuratedPicks() {
 function vsRenderCuratedPicks(picks) {
   const container = document.getElementById('vsCuratedItems');
   if (!picks || !picks.length) {
-    container.innerHTML = '<div style="color:#555;font-size:10px;font-style:italic;">Yo's personally selected pieces will appear here.</div>';
+    container.innerHTML = "<div style='color:#555;font-size:10px;font-style:italic;'>Yo's personally selected pieces will appear here.</div>";
     return;
   }
   container.innerHTML = picks.map((pick, i) => `
