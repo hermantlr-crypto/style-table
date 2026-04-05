@@ -1,19 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<style id="style-fixes">
-/* Nav tab scrolling fix */
-.nav-tabs {
-  flex-wrap: nowrap !important;
-  overflow-x: auto !important;
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-}
-.nav-tabs::-webkit-scrollbar { display: none !important; }
-/* Hide all picks in advisor */
-#vsCuratedSection { display: none !important; }
-</style>
-
 <script>
 // At The Style Table — API Configuration
 window.ANTHROPIC_KEY = ""; // Key handled server-side via Netlify function
@@ -1161,7 +1148,7 @@ self.addEventListener('fetch', e => {
                 </select>
             </div>
             
-            <div class="nav-tabs" style="flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;">
+            <div class="nav-tabs" style="flex-wrap:wrap;overflow:visible;">
                 <button class="nav-tab active" onclick="showPage('how-to-use')">HOW TO USE</button>
                 <button class="nav-tab" onclick="showPage('events')">EVENTS</button>
                 <button class="nav-tab" onclick="showPage('closet')">CLOSET</button>
