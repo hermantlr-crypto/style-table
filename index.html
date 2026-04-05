@@ -8132,7 +8132,8 @@ function vsToggleTag(el) {
 }
 
 // ── Outfit Advisor ────────────────────────────────────────────────────────────
-// Show admin button if logged in as Yofunction vsCheckAdminAccess(email) {
+// Show admin button if logged in as Yo
+function vsCheckAdminAccess(email) {
   const adminBtn = document.getElementById('vsAdminBtn');
   if (adminBtn && email && email.toLowerCase() === 'yo@atthestyletable.com') {
     adminBtn.style.display = 'block';
