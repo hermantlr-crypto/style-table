@@ -7838,8 +7838,23 @@ document.addEventListener('click', (e) => {
   <div id="vsAdminPanel" style="display:none;background:#0a0a0a;border-bottom:1px solid #2a2a2a;padding:16px;max-height:380px;overflow-y:auto;">
     <div style="color:#D4A354;font-size:10px;font-weight:700;letter-spacing:1.5px;margin-bottom:12px;">⚙️ YO'S ADMIN — CURATED PICKS</div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+      <!-- AI Parse from paste -->
+      <div style="margin-bottom:8px;">
+        <div style="color:#D4A354;font-size:9px;font-weight:700;letter-spacing:1px;margin-bottom:4px;">PASTE ITEM DETAILS FROM WEBSITE</div>
+        <textarea id="vsPickPasteText" rows="3" placeholder="Paste product name, description, price from any website here… AI will fill in the fields automatically" style="width:100%;background:#111;border:1px solid #333;border-radius:6px;color:#eee;font-size:10px;padding:8px;resize:none;box-sizing:border-box;font-family:Montserrat,sans-serif;line-height:1.4;"></textarea>
+        <button id="vsParseBtn" onclick="vsParseItemDetails()" style="width:100%;background:rgba(212,163,84,0.15);border:1px solid #D4A354;border-radius:6px;color:#D4A354;font-size:10px;font-weight:700;letter-spacing:1px;padding:8px;cursor:pointer;font-family:Montserrat,sans-serif;margin-top:4px;">🤖 AI PARSE</button>
+      </div>
+      <div style="color:#555;font-size:9px;text-align:center;margin-bottom:6px;">— or fill in manually —</div>
       <input id="vsPickName" placeholder="Item name (e.g. Emerald Wrap Dress)" style="background:#111;border:1px solid #333;border-radius:6px;color:#eee;font-size:11px;padding:8px;font-family:Montserrat,sans-serif;width:100%;box-sizing:border-box;" />
-      <input id="vsPickUrl" placeholder="Hue & Stripe link URL" style="background:#111;border:1px solid #333;border-radius:6px;color:#eee;font-size:11px;padding:8px;font-family:Montserrat,sans-serif;width:100%;box-sizing:border-box;" />
+      <div style="display:flex;gap:6px;">
+        <input id="vsPickUrl" placeholder="Paste product URL here…" style="background:#111;border:1px solid #333;border-radius:6px;color:#eee;font-size:11px;padding:8px;font-family:Montserrat,sans-serif;flex:1;box-sizing:border-box;" />
+        <button id="vsFetchBtn" onclick="vsFetchFromUrl()" style="background:rgba(212,163,84,0.15);border:1px solid #D4A354;border-radius:6px;color:#D4A354;font-size:9px;font-weight:700;padding:8px 10px;cursor:pointer;font-family:Montserrat,sans-serif;white-space:nowrap;flex-shrink:0;">🔍 FETCH</button>
+      </div>
+      <!-- Image preview -->
+      <div id="vsPickImagePreview" style="display:none;margin-top:6px;">
+        <img id="vsPickImageThumb" src="" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #333;" />
+        <span style="color:#888;font-size:9px;margin-left:8px;">Image found ✓</span>
+      </div>
       <input id="vsPickRetailer" placeholder="Retailer (e.g. Nordstrom)" style="background:#111;border:1px solid #333;border-radius:6px;color:#eee;font-size:11px;padding:8px;font-family:Montserrat,sans-serif;width:100%;box-sizing:border-box;" />
       <input id="vsPickPrice" placeholder="Price (e.g. $245)" style="background:#111;border:1px solid #333;border-radius:6px;color:#eee;font-size:11px;padding:8px;font-family:Montserrat,sans-serif;width:100%;box-sizing:border-box;" />
       <input id="vsPickImage" placeholder="Product image URL (optional)" style="background:#111;border:1px solid #333;border-radius:6px;color:#eee;font-size:11px;padding:8px;font-family:Montserrat,sans-serif;width:100%;box-sizing:border-box;" />
@@ -8065,6 +8080,130 @@ document.addEventListener('click', (e) => {
 </div>
 
 <script>
+// ── Fetch product details from URL ────────────────────────────────────────
+async function vsFetchFromUrl() {
+  const url = document.getElementById('vsPickUrl').value.trim();
+  if (!url) { alert('Please paste a product URL first.'); return; }
+
+  const btn = document.getElementById('vsFetchBtn');
+  btn.textContent = '⏳';
+  btn.disabled = true;
+
+  try {
+    // Use our proxy to fetch the page and extract Open Graph metadata
+    const res = await fetch('/.netlify/functions/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        service: 'fetch-url',
+        url: url
+      })
+    });
+
+    const data = await res.json();
+    
+    if (data.title && !document.getElementById('vsPickName').value) {
+      document.getElementById('vsPickName').value = data.title;
+    }
+    if (data.price && !document.getElementById('vsPickPrice').value) {
+      document.getElementById('vsPickPrice').value = data.price;
+    }
+    if (data.retailer && !document.getElementById('vsPickRetailer').value) {
+      document.getElementById('vsPickRetailer').value = data.retailer;
+    }
+    if (data.image) {
+      document.getElementById('vsPickImage').value = data.image;
+      // Show preview
+      const preview = document.getElementById('vsPickImagePreview');
+      const thumb = document.getElementById('vsPickImageThumb');
+      thumb.src = data.image;
+      preview.style.display = 'flex';
+      preview.style.alignItems = 'center';
+    }
+
+    btn.textContent = '✓ Done';
+    setTimeout(() => { btn.textContent = '🔍 FETCH'; btn.disabled = false; }, 2000);
+  } catch(e) {
+    btn.textContent = '🔍 FETCH';
+    btn.disabled = false;
+    alert('Could not fetch URL: ' + e.message);
+  }
+}
+
+// ── Item icon helper ──────────────────────────────────────────────────────
+function vsGetItemIcon(name, occasion) {
+  const n = (name || '').toLowerCase();
+  const o = (occasion || '').toLowerCase();
+  if (n.includes('dress') || n.includes('gown') || n.includes('frock')) return '👗';
+  if (n.includes('skirt')) return '🩱';
+  if (n.includes('pant') || n.includes('trouser') || n.includes('jean') || n.includes('legging')) return '👖';
+  if (n.includes('suit') || n.includes('blazer') || n.includes('jacket') || n.includes('coat')) return '🧥';
+  if (n.includes('top') || n.includes('blouse') || n.includes('shirt') || n.includes('tee')) return '👚';
+  if (n.includes('shoe') || n.includes('heel') || n.includes('boot') || n.includes('sandal') || n.includes('loafer') || n.includes('flat') || n.includes('pump')) return '👠';
+  if (n.includes('bag') || n.includes('purse') || n.includes('clutch') || n.includes('tote') || n.includes('handbag')) return '👜';
+  if (n.includes('jewelry') || n.includes('necklace') || n.includes('earring') || n.includes('bracelet') || n.includes('ring')) return '💍';
+  if (n.includes('scarf') || n.includes('wrap') || n.includes('shawl')) return '🧣';
+  if (n.includes('hat') || n.includes('cap') || n.includes('beret')) return '👒';
+  if (n.includes('belt')) return '🪡';
+  if (n.includes('sunglasse') || n.includes('glasses')) return '🕶️';
+  if (n.includes('watch')) return '⌚';
+  if (n.includes('lingerie') || n.includes('bra') || n.includes('underwear')) return '🩲';
+  if (n.includes('swimsuit') || n.includes('bikini') || n.includes('swim')) return '👙';
+  if (n.includes('jumpsuit') || n.includes('romper') || n.includes('playsuit')) return '🩱';
+  if (o.includes('gala') || o.includes('formal')) return '👗';
+  if (o.includes('business')) return '🧥';
+  return '✨';
+}
+
+// ── AI Parse item details from paste ──────────────────────────────────────
+async function vsParseItemDetails() {
+  const pasteText = document.getElementById('vsPickPasteText').value.trim();
+  if (!pasteText) { alert('Please paste item details first.'); return; }
+
+  const parseBtn = document.getElementById('vsParseBtn');
+  parseBtn.textContent = '⏳ Parsing…';
+  parseBtn.disabled = true;
+
+  try {
+    const res = await fetch('/.netlify/functions/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: 'You are a fashion product data extractor. Extract product details from pasted text and return ONLY a JSON object. No explanation.',
+        messages: [{
+          role: 'user',
+          content: `Extract these fields from the product text below. Return ONLY a JSON object with these exact keys: name, retailer, price, occasion (one of: Business Meeting, Gala/Formal, Date Night, Brunch/Casual Chic, Travel, Weekend/Errand, or leave blank if unclear).
+
+Product text:
+${pasteText}
+
+Return ONLY valid JSON like: {"name":"...","retailer":"...","price":"...","occasion":"..."}`
+        }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content.filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('Could not parse response');
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    if (parsed.name) document.getElementById('vsPickName').value = parsed.name;
+    if (parsed.retailer) document.getElementById('vsPickRetailer').value = parsed.retailer;
+    if (parsed.price) document.getElementById('vsPickPrice').value = parsed.price;
+    if (parsed.occasion) document.getElementById('vsPickOccasion').value = parsed.occasion;
+
+    // Clear paste area
+    document.getElementById('vsPickPasteText').value = '';
+    parseBtn.textContent = '✓ Parsed!';
+    setTimeout(() => { parseBtn.textContent = '🤖 AI Parse'; parseBtn.disabled = false; }, 2000);
+  } catch(e) {
+    parseBtn.textContent = '🤖 AI Parse';
+    parseBtn.disabled = false;
+    alert('Parse error: ' + e.message);
+  }
+}
+
 // ── Yo's Picks Page ────────────────────────────────────────────────────────
 let allYosPicks = [];
 
@@ -8103,7 +8242,7 @@ function renderYosPicks(picks) {
       <div style="width:100%;padding-top:100%;position:relative;background:#1a1a1a;overflow:hidden;">
         ${pick.image 
           ? `<img src="${pick.image}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;height:100%;font-size:40px;\'>👜</div>'" />`
-          : '<div style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;">👜</div>'
+          : '<div style=\"position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;\">' + vsGetItemIcon(pick.name, pick.occasion) + '</div>'
         }
       </div>
       <div style="padding:10px;">
@@ -8355,6 +8494,7 @@ async function vsAddPick() {
     alert('Pick added! ✓');
     vsLoadCuratedPicks();
     vsLoadAdminList();
+    loadYosPicks();
   } catch(e) {
     alert('Error saving pick: ' + e.message);
   }
@@ -8367,6 +8507,7 @@ async function vsRemovePick(id) {
     if (error) throw error;
     vsLoadCuratedPicks();
     vsLoadAdminList();
+    loadYosPicks();
   } catch(e) {
     alert('Error removing pick: ' + e.message);
   }
@@ -8449,6 +8590,8 @@ async function vsUpdatePick(id) {
     alert('Pick updated! ✓');
     vsLoadCuratedPicks();
     vsLoadAdminList();
+    // Also refresh the YO'S PICKS tab if it's loaded
+    loadYosPicks();
   } catch(e) {
     alert('Error updating pick: ' + e.message);
   }
