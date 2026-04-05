@@ -1143,6 +1143,7 @@ self.addEventListener('fetch', e => {
                     <option value="measurements">MEASUREMENTS</option>
                     <option value="contacts">CONTACTS</option>
                     <option value="months">CALENDAR</option>
+                    <option value="yos-picks">YO'S PICKS</option>
                     <option value="sms-settings">SMS REMINDERS</option>
                 </select>
             </div>
@@ -7708,6 +7709,8 @@ window.addEventListener('DOMContentLoaded', async () => {
       await onSignedIn(session.user);
     } else if (event === 'SIGNED_OUT') {
       currentUser = null;
+      const adminBtnEl = document.getElementById('vsAdminBtn');
+      if (adminBtnEl) adminBtnEl.style.display = 'none';
     }
   });
 });
@@ -7788,9 +7791,9 @@ document.addEventListener('click', (e) => {
   position:fixed;
   bottom:110px;
   left:30px;
-  width:680px;
+  width:780px;
   max-width:96vw;
-  height:600px;
+  height:85vh;
   background:#0f0f0f;
   border-radius:16px;
   box-shadow:0 12px 56px rgba(0,0,0,0.9);
@@ -7962,7 +7965,7 @@ document.addEventListener('click', (e) => {
     ">✨ GET OUTFIT ADVICE</button>
 
     <!-- Advice output -->
-    <div id="vsAdviceOutput" style="display:none;background:#1a1a1a;border:1px solid #D4A354;border-radius:8px;padding:14px;"></div>
+    <div id="vsAdviceOutput" style="display:none;background:#1a1a1a;border:1px solid #D4A354;border-radius:8px;padding:16px;font-size:13px;line-height:1.8;"></div>
 
     <!-- Yo's Matched Picks -->
     <div id="vsMatchedPicks" style="display:none;margin-top:4px;">
