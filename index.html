@@ -1148,7 +1148,7 @@ self.addEventListener('fetch', e => {
                 </select>
             </div>
             
-            <div class="nav-tabs">
+            <div class="nav-tabs" style="flex-wrap:wrap;overflow:visible;">
                 <button class="nav-tab active" onclick="showPage('how-to-use')">HOW TO USE</button>
                 <button class="nav-tab" onclick="showPage('events')">EVENTS</button>
                 <button class="nav-tab" onclick="showPage('closet')">CLOSET</button>
@@ -1158,7 +1158,7 @@ self.addEventListener('fetch', e => {
                 <button class="nav-tab" onclick="showPage('travel')">TRAVEL</button>
                 <button class="nav-tab" onclick="showPage('contacts')">CONTACTS</button>
                 <button class="nav-tab" onclick="showPage('months')">CALENDAR</button>
-                <button class="nav-tab" onclick="showPage('yos-picks');loadYosPicks()" style="color:#D4A354;font-weight:700;">YO'S PICKS</button>
+                <button class="nav-tab" onclick="showPage('yos-picks');loadYosPicks()" style="color:#D4A354;font-weight:700;border-color:#D4A354;">✨ YO'S PICKS</button>
             </div>
         </div>
 
@@ -7994,13 +7994,9 @@ document.addEventListener('click', (e) => {
       Consulting your personal stylist…
     </div>
 
-    <!-- ── Yo's Curated Picks ─────────────────────────────────────── -->
-    <div id="vsCuratedSection" style="margin-top:8px;border-top:1px solid #1a1a1a;padding-top:14px;">
-      <div style="color:#D4A354;font-size:10px;font-weight:700;letter-spacing:1.5px;margin-bottom:10px;">✨ YO'S CURATED PICKS</div>
-      <div id="vsCuratedItems" style="display:flex;flex-direction:column;gap:8px;">
-        <!-- Populated by admin or hardcoded picks -->
-        <div style="color:#555;font-size:10px;font-style:italic;">Yo's personally selected pieces will appear here.</div>
-      </div>
+    <!-- Yo's curated picks container (hidden - used by render function) -->
+    <div id="vsCuratedSection" style="display:none;">
+      <div id="vsCuratedItems"></div>
     </div>
 
     <!-- ── Request a Pick ─────────────────────────────────────────── -->
