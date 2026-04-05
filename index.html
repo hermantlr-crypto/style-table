@@ -7305,6 +7305,22 @@ console.log('✅ Script loaded');
     console.log('✅ Planner visible!');
 });
 
+// Show admin button if logged in as Yo
+function vsCheckAdminAccess(email) {
+  const adminBtn = document.getElementById('vsAdminBtn');
+  if (adminBtn && email && email.toLowerCase() === 'yo@atthestyletable.com') {
+    adminBtn.style.display = 'block';
+    // Load admin pick list
+    setTimeout(async () => {
+      try {
+        const result = await window.storage.get('curated_picks');
+        const picks = result ? JSON.parse(result.value) : [];
+        vsRenderAdminList(picks);
+      } catch(e) {}
+    }, 500);
+  }
+}
+
 // Check if already accepted
 addEventListener('DOMContentLoaded', function() {
     console.log('✅ DOM loaded');
@@ -7563,6 +7579,8 @@ async function onSignedIn(user) {
   const name = user.user_metadata?.full_name || email.split('@')[0];
   document.getElementById('userMenuEmail').textContent = email;
   document.getElementById('userDropdownName').textContent = name;
+  // Show admin button for Yo
+  vsCheckAdminAccess(email);
 
   // Ensure the planner div is visible (handle terms modal)
   const plannerDiv = document.getElementById('plannerDiv');
@@ -7757,9 +7775,26 @@ document.addEventListener('click', (e) => {
         <div style="color:#888;font-size:10px;letter-spacing:0.5px;">Powered by Yo Taylor's philosophy</div>
       </div>
     </div>
-    <div style="display:flex;gap:6px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button id="vsAdminBtn" onclick="vsToggleAdmin()" style="display:none;background:none;border:1px solid #444;border-radius:4px;color:#888;font-size:9px;padding:3px 8px;cursor:pointer;font-family:Montserrat,sans-serif;letter-spacing:0.5px;">⚙️ ADMIN</button>
       <button onclick="document.getElementById('voiceStylistPanel').style.display='none'" style="background:none;border:none;color:#D4A354;font-size:22px;cursor:pointer;padding:0 4px;">×</button>
     </div>
+  </div>
+
+  <!-- Admin Panel (Yo only) -->
+  <div id="vsAdminPanel" style="display:none;background:#0a0a0a;border-bottom:1px solid #2a2a2a;padding:16px;max-height:380px;overflow-y:auto;">
+    <div style="color:#D4A354;font-size:10px;font-weight:700;letter-spacing:1.5px;margin-bottom:12px;">⚙️ YO'S ADMIN — CURATED PICKS</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+      <input id="vsPickName" placeholder="Item name (e.g. Emerald Wrap Dress)" style="background:#111;border:1px solid #333;border-radius:6px;color:#eee;font-size:11px;padding:8px;font-family:Montserrat,sans-serif;width:100%;box-sizing:border-box;" />
+      <input id="vsPickUrl" placeholder="Hue & Stripe link URL" style="background:#111;border:1px solid #333;border-radius:6px;color:#eee;font-size:11px;padding:8px;font-family:Montserrat,sans-serif;width:100%;box-sizing:border-box;" />
+      <input id="vsPickRetailer" placeholder="Retailer (e.g. Nordstrom)" style="background:#111;border:1px solid #333;border-radius:6px;color:#eee;font-size:11px;padding:8px;font-family:Montserrat,sans-serif;width:100%;box-sizing:border-box;" />
+      <input id="vsPickPrice" placeholder="Price (e.g. $245)" style="background:#111;border:1px solid #333;border-radius:6px;color:#eee;font-size:11px;padding:8px;font-family:Montserrat,sans-serif;width:100%;box-sizing:border-box;" />
+      <input id="vsPickImage" placeholder="Product image URL (optional)" style="background:#111;border:1px solid #333;border-radius:6px;color:#eee;font-size:11px;padding:8px;font-family:Montserrat,sans-serif;width:100%;box-sizing:border-box;" />
+      <input id="vsPickOccasion" placeholder="Occasion tag (e.g. Gala, Business)" style="background:#111;border:1px solid #333;border-radius:6px;color:#eee;font-size:11px;padding:8px;font-family:Montserrat,sans-serif;width:100%;box-sizing:border-box;" />
+      <button onclick="vsAddPick()" style="background:linear-gradient(135deg,#D4A354,#B8873D);border:none;border-radius:6px;color:#000;font-size:10px;font-weight:700;letter-spacing:1px;padding:10px;cursor:pointer;font-family:Montserrat,sans-serif;">+ ADD PICK</button>
+    </div>
+    <div style="color:#D4A354;font-size:9px;font-weight:700;letter-spacing:1px;margin-bottom:6px;">CURRENT PICKS</div>
+    <div id="vsAdminPickList"><div style="color:#555;font-size:10px;">No picks yet.</div></div>
   </div>
 
   <!-- Tab Bar -->
@@ -7914,6 +7949,63 @@ document.addEventListener('click', (e) => {
       <div style="font-size:24px;margin-bottom:6px;">👗</div>
       Consulting your personal stylist…
     </div>
+
+    <!-- ── Yo's Curated Picks ─────────────────────────────────────── -->
+    <div id="vsCuratedSection" style="margin-top:8px;border-top:1px solid #1a1a1a;padding-top:14px;">
+      <div style="color:#D4A354;font-size:10px;font-weight:700;letter-spacing:1.5px;margin-bottom:10px;">✨ YO'S CURATED PICKS</div>
+      <div id="vsCuratedItems" style="display:flex;flex-direction:column;gap:8px;">
+        <!-- Populated by admin or hardcoded picks -->
+        <div style="color:#555;font-size:10px;font-style:italic;">Yo's personally selected pieces will appear here.</div>
+      </div>
+    </div>
+
+    <!-- ── Request a Pick ─────────────────────────────────────────── -->
+    <div style="margin-top:14px;border-top:1px solid #1a1a1a;padding-top:14px;">
+      <div style="color:#D4A354;font-size:10px;font-weight:700;letter-spacing:1.5px;margin-bottom:6px;">👗 REQUEST A PICK FROM YO</div>
+      <div style="color:#888;font-size:10px;line-height:1.6;margin-bottom:10px;">Want Yo to personally find and curate a specific piece for you? Choose your service below.</div>
+      
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <!-- Written Feedback -->
+        <div style="background:#111;border:1px solid #222;border-radius:8px;padding:12px;">
+          <div style="color:#eee;font-size:11px;font-weight:700;margin-bottom:4px;">📝 Written Style Feedback</div>
+          <div style="color:#888;font-size:10px;line-height:1.5;margin-bottom:8px;">Yo reviews your request and sends you curated picks with her personal styling notes via email.</div>
+          <a href="https://buy.stripe.com/4gMaEX4BW05I8ghe8s7AI0h" target="_blank" rel="noopener" style="
+            display:block;text-align:center;
+            background:linear-gradient(135deg,#D4A354,#B8873D);
+            border:none;border-radius:6px;color:#000;font-size:10px;
+            font-weight:700;letter-spacing:1px;padding:10px;
+            text-decoration:none;font-family:'Montserrat',sans-serif;
+          ">GET WRITTEN PICKS →</a>
+        </div>
+
+        <!-- 30 Min Consultation -->
+        <div style="background:#111;border:1px solid #222;border-radius:8px;padding:12px;">
+          <div style="color:#eee;font-size:11px;font-weight:700;margin-bottom:4px;">🎥 30-Min Virtual Styling Session</div>
+          <div style="color:#888;font-size:10px;line-height:1.5;margin-bottom:8px;">A live virtual session with Yo to find the perfect pieces together in real time.</div>
+          <a href="https://buy.stripe.com/9B6aEX3xS3hUbstfcw7AI0i" target="_blank" rel="noopener" style="
+            display:block;text-align:center;
+            background:linear-gradient(135deg,#D4A354,#B8873D);
+            border:none;border-radius:6px;color:#000;font-size:10px;
+            font-weight:700;letter-spacing:1px;padding:10px;
+            text-decoration:none;font-family:'Montserrat',sans-serif;
+          ">BOOK & PAY →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Book Time with Yo ───────────────────────────────────────── -->
+    <div style="margin-top:14px;border-top:1px solid #1a1a1a;padding-top:14px;margin-bottom:16px;">
+      <div style="color:#D4A354;font-size:10px;font-weight:700;letter-spacing:1.5px;margin-bottom:6px;">📅 BOOK TIME WITH YO</div>
+      <div style="color:#888;font-size:10px;line-height:1.6;margin-bottom:10px;">Schedule a complimentary 15-minute discovery call to explore how Yo can elevate your wardrobe strategy.</div>
+      <a href="https://link.womenwhobossup.com/widget/bookings/15-min-complimentary-session" target="_blank" rel="noopener" style="
+        display:block;text-align:center;
+        background:transparent;
+        border:1px solid #D4A354;border-radius:6px;color:#D4A354;font-size:10px;
+        font-weight:700;letter-spacing:1px;padding:10px;
+        text-decoration:none;font-family:'Montserrat',sans-serif;
+      ">SCHEDULE YOUR SESSION →</a>
+    </div>
+
   </div>
 </div>
 
@@ -8046,6 +8138,106 @@ function vsToggleTag(el) {
 }
 
 // ── Outfit Advisor ────────────────────────────────────────────────────────────
+// ── Yo's Curated Picks Admin & Display ────────────────────────────────────
+
+// Load curated picks from storage and display them
+async function vsLoadCuratedPicks() {
+  try {
+    const result = await window.storage.get('curated_picks');
+    const picks = result ? JSON.parse(result.value) : [];
+    vsRenderCuratedPicks(picks);
+  } catch(e) {
+    vsRenderCuratedPicks([]);
+  }
+}
+
+function vsRenderCuratedPicks(picks) {
+  const container = document.getElementById('vsCuratedItems');
+  if (!picks || !picks.length) {
+    container.innerHTML = '<div style="color:#555;font-size:10px;font-style:italic;">Yo's personally selected pieces will appear here.</div>';
+    return;
+  }
+  container.innerHTML = picks.map((pick, i) => `
+    <a href="${pick.url}" target="_blank" rel="noopener" style="
+      display:flex;align-items:center;gap:10px;
+      background:#111;border:1px solid #222;border-radius:8px;
+      padding:10px;text-decoration:none;transition:border-color 0.2s;
+    " onmouseover="this.style.borderColor='#D4A354'" onmouseout="this.style.borderColor='#222'">
+      ${pick.image ? `<img src="${pick.image}" style="width:48px;height:48px;object-fit:cover;border-radius:4px;flex-shrink:0;" />` : '<div style="width:48px;height:48px;background:#1a1a1a;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;">👗</div>'}
+      <div style="flex:1;min-width:0;">
+        <div style="color:#eee;font-size:10px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${pick.name}</div>
+        <div style="color:#888;font-size:9px;margin-bottom:2px;">${pick.retailer || ''} ${pick.price ? '· ' + pick.price : ''}</div>
+        <div style="color:#D4A354;font-size:9px;font-weight:600;">YO'S PICK ✓</div>
+      </div>
+    </a>
+  `).join('');
+}
+
+// Admin panel toggle (only visible to Yo)
+function vsToggleAdmin() {
+  const panel = document.getElementById('vsAdminPanel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+async function vsAddPick() {
+  const name = document.getElementById('vsPickName').value.trim();
+  const url = document.getElementById('vsPickUrl').value.trim();
+  const retailer = document.getElementById('vsPickRetailer').value.trim();
+  const price = document.getElementById('vsPickPrice').value.trim();
+  const image = document.getElementById('vsPickImage').value.trim();
+  const occasion = document.getElementById('vsPickOccasion').value.trim();
+
+  if (!name || !url) { alert('Name and URL are required.'); return; }
+
+  try {
+    let picks = [];
+    try {
+      const result = await window.storage.get('curated_picks');
+      if (result) picks = JSON.parse(result.value);
+    } catch(e) {}
+
+    picks.unshift({ name, url, retailer, price, image, occasion, id: Date.now() });
+    await window.storage.set('curated_picks', JSON.stringify(picks));
+    vsRenderCuratedPicks(picks);
+    vsRenderAdminList(picks);
+
+    // Clear form
+    ['vsPickName','vsPickUrl','vsPickRetailer','vsPickPrice','vsPickImage','vsPickOccasion'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    alert('Pick added! ✓');
+  } catch(e) {
+    alert('Error saving pick: ' + e.message);
+  }
+}
+
+async function vsRemovePick(id) {
+  try {
+    const result = await window.storage.get('curated_picks');
+    let picks = result ? JSON.parse(result.value) : [];
+    picks = picks.filter(p => p.id !== id);
+    await window.storage.set('curated_picks', JSON.stringify(picks));
+    vsRenderCuratedPicks(picks);
+    vsRenderAdminList(picks);
+  } catch(e) {
+    alert('Error removing pick: ' + e.message);
+  }
+}
+
+function vsRenderAdminList(picks) {
+  const list = document.getElementById('vsAdminPickList');
+  if (!picks.length) { list.innerHTML = '<div style="color:#555;font-size:10px;">No picks yet.</div>'; return; }
+  list.innerHTML = picks.map(p => `
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #1a1a1a;">
+      <div style="flex:1;color:#aaa;font-size:10px;">${p.name} <span style="color:#555;">· ${p.retailer||''} ${p.price||''}</span></div>
+      <button onclick="vsRemovePick(${p.id})" style="background:#300;border:1px solid #500;border-radius:4px;color:#f66;font-size:9px;padding:2px 6px;cursor:pointer;">Remove</button>
+    </div>
+  `).join('');
+}
+
+// Initialize picks on load
+document.addEventListener('DOMContentLoaded', () => { vsLoadCuratedPicks(); });
+
 // ── Field-level mic for Outfit Advisor ────────────────────────────────────
 let vsFieldRecognition = null;
 let vsFieldListening = false;
