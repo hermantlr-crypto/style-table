@@ -8083,7 +8083,16 @@ document.addEventListener('click', (e) => {
           <button onclick="vsClearImage()" style="background:none;border:none;color:#f66;font-size:10px;cursor:pointer;padding:0;margin-top:4px;">✕ Remove</button>
         </div>
       </div>
-      <input id="vsPickOccasion" placeholder="Occasion tag (e.g. Gala, Business)" style="background:#111;border:1px solid #333;border-radius:6px;color:#eee;font-size:11px;padding:8px;font-family:Montserrat,sans-serif;width:100%;box-sizing:border-box;" />
+      <select id="vsPickOccasion" style="background:#fff;border:1.5px solid #d4c4b0;border-radius:8px;color:#2a2a2a;font-size:13px;padding:10px;font-family:Montserrat,sans-serif;width:100%;box-sizing:border-box;cursor:pointer;">
+        <option value="">— Select occasion —</option>
+        <option value="Business Meeting">Business Meeting</option>
+        <option value="Gala/Formal">Gala / Formal</option>
+        <option value="Date Night">Date Night</option>
+        <option value="Brunch/Casual Chic">Brunch / Casual Chic</option>
+        <option value="Travel">Travel</option>
+        <option value="Weekend/Errand">Weekend / Errand</option>
+        <option value="All Occasions">All Occasions</option>
+      </select>
       <button onclick="vsAddPick()" style="background:linear-gradient(135deg,#D4A354,#B8873D);border:none;border-radius:6px;color:#000;font-size:10px;font-weight:700;letter-spacing:1px;padding:10px;cursor:pointer;font-family:Montserrat,sans-serif;">+ ADD PICK</button>
     </div>
     <div style="color:#D4A354;font-size:9px;font-weight:700;letter-spacing:1px;margin-bottom:6px;">CURRENT PICKS</div>
