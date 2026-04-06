@@ -1,6 +1,187 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+<style id="vs-light-mode">
+/* ── Voice Stylist Light Mode ─────────────────────────── */
+#voiceStylistPanel { font-family: 'Montserrat', sans-serif; }
+
+/* Panel scroll areas */
+#vsPanel1, #vsPanel2 {
+  background: #f8f5f0;
+  padding: 20px;
+  gap: 16px;
+}
+
+/* Labels */
+#vsPanel1 label, #vsPanel2 label,
+#vsPanel1 .vs-label, #vsPanel2 .vs-label {
+  color: #3a3a3a !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+/* All text inputs and textareas in VS panel */
+#voiceStylistPanel input[type="text"],
+#voiceStylistPanel input:not([type]),
+#voiceStylistPanel textarea,
+#vsWardrobeNotes,
+#vsStyleRequest,
+#vsManualInput,
+#vsTranscript {
+  background: #ffffff !important;
+  border: 1.5px solid #d4c4b0 !important;
+  border-radius: 10px !important;
+  color: #2a2a2a !important;
+  font-size: 14px !important;
+  padding: 12px 14px !important;
+  line-height: 1.6 !important;
+}
+
+#voiceStylistPanel input::placeholder,
+#voiceStylistPanel textarea::placeholder {
+  color: #aaa !important;
+  font-size: 13px !important;
+}
+
+#voiceStylistPanel input:focus,
+#voiceStylistPanel textarea:focus {
+  border-color: #D4A354 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(212,163,84,0.15) !important;
+}
+
+/* Section labels */
+#voiceStylistPanel [style*="color:#D4A354;font-size:10px"] {
+  color: #8B6914 !important;
+  font-size: 12px !important;
+}
+
+#voiceStylistPanel [style*="color:#888"] {
+  color: #666 !important;
+  font-size: 13px !important;
+}
+
+#voiceStylistPanel [style*="color:#aaa"],
+#voiceStylistPanel [style*="color:#ddd"],
+#voiceStylistPanel [style*="color:#eee"] {
+  color: #2a2a2a !important;
+}
+
+/* Occasion tags */
+.vsOccTag {
+  background: #fff !important;
+  border: 1.5px solid #d4c4b0 !important;
+  color: #555 !important;
+  font-size: 12px !important;
+  padding: 8px 16px !important;
+  border-radius: 25px !important;
+}
+
+.vsOccTag[data-on="1"] {
+  background: rgba(212,163,84,0.15) !important;
+  border-color: #D4A354 !important;
+  color: #8B6914 !important;
+}
+
+/* Advice output */
+#vsAdviceOutput {
+  background: #ffffff !important;
+  border: 1.5px solid #D4A354 !important;
+  border-radius: 10px !important;
+  padding: 20px !important;
+  color: #2a2a2a !important;
+  font-size: 14px !important;
+  line-height: 1.8 !important;
+}
+
+#vsAdviceOutput strong { color: #8B6914 !important; }
+
+/* Shop section */
+#vsShopSection [style*="color:#D4A354"] { color: #8B6914 !important; font-size: 12px !important; }
+#vsShopSection a {
+  background: #fff !important;
+  border: 1.5px solid #d4c4b0 !important;
+  color: #555 !important;
+  font-size: 11px !important;
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+}
+#vsShopSection a:hover {
+  border-color: #D4A354 !important;
+  color: #8B6914 !important;
+}
+
+/* Matched picks */
+#vsMatchedPicks a {
+  background: #fff !important;
+  border: 1.5px solid rgba(212,163,84,0.4) !important;
+}
+#vsMatchedPicks a:hover {
+  background: rgba(212,163,84,0.08) !important;
+}
+
+/* Buttons */
+#voiceStylistPanel button[onclick*="vsGetOutfitAdvice"] {
+  padding: 16px !important;
+  font-size: 14px !important;
+  border-radius: 10px !important;
+}
+
+/* Status text */
+#vsMicClosetStatus, #vsMicRequestStatus {
+  color: #888 !important;
+  font-size: 11px !important;
+}
+
+/* Loading */
+#vsAdviceLoading { color: #8B6914 !important; font-size: 13px !important; }
+
+/* Request/booking sections */
+#voiceStylistPanel [style*="background:#111"] {
+  background: #ffffff !important;
+  border-color: #e8e0d5 !important;
+}
+#voiceStylistPanel [style*="background:#1a1a1a"] {
+  background: #f0ebe4 !important;
+}
+
+/* Section titles in advisor */
+#vsPanel2 > div > div[style*="font-weight:700"] {
+  font-size: 13px !important;
+  color: #8B6914 !important;
+}
+
+/* Book/request buttons */
+#vsPanel2 a[style*="background:linear-gradient"] {
+  padding: 14px !important;
+  font-size: 13px !important;
+  border-radius: 8px !important;
+}
+
+/* Regenerate button */
+#vsRegenBtn {
+  border-color: #d4c4b0 !important;
+  color: #666 !important;
+  font-size: 11px !important;
+  padding: 5px 12px !important;
+}
+
+/* Admin panel */
+#vsAdminPanel {
+  background: #f0ebe4 !important;
+  border-bottom-color: #e8e0d5 !important;
+}
+#vsAdminPanel input, #vsAdminPanel textarea {
+  background: #fff !important;
+  border-color: #d4c4b0 !important;
+  color: #2a2a2a !important;
+  font-size: 13px !important;
+}
+#vsAdminPanel [style*="color:#aaa"] { color: #333 !important; }
+#vsAdminPanel [style*="color:#555"] { color: #666 !important; }
+</style>
+
 <style id="style-fixes">
 /* Nav tab scrolling fix */
 .nav-tabs {
@@ -7809,9 +7990,9 @@ document.addEventListener('click', (e) => {
   width:780px;
   max-width:96vw;
   height:85vh;
-  background:#0f0f0f;
+  background:#f8f5f0;
   border-radius:16px;
-  box-shadow:0 12px 56px rgba(0,0,0,0.9);
+  box-shadow:0 12px 56px rgba(0,0,0,0.6);
   display:none;
   flex-direction:column;
   z-index:9996;
@@ -7892,9 +8073,9 @@ document.addEventListener('click', (e) => {
   </div>
 
   <!-- Tab Bar -->
-  <div style="display:flex;border-bottom:1px solid #2a2a2a;">
-    <button id="vsTab1" onclick="vsShowTab(1)" style="flex:1;padding:10px;background:#1a1a1a;border:none;color:#D4A354;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;border-bottom:2px solid #D4A354;">🎙️ VOICE ENTRY</button>
-    <button id="vsTab2" onclick="vsShowTab(2)" style="flex:1;padding:10px;background:transparent;border:none;color:#666;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;border-bottom:2px solid transparent;">✨ OUTFIT ADVISOR</button>
+  <div style="display:flex;border-bottom:2px solid #e8e0d5;">
+    <button id="vsTab1" onclick="vsShowTab(1)" style="flex:1;padding:14px;background:#fff;border:none;color:#D4A354;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;border-bottom:3px solid #D4A354;">🎙️ VOICE ENTRY</button>
+    <button id="vsTab2" onclick="vsShowTab(2)" style="flex:1;padding:14px;background:#f8f5f0;border:none;color:#999;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;border-bottom:3px solid transparent;">✨ OUTFIT ADVISOR</button>
   </div>
 
   <!-- Tab 1: Voice Entry -->
@@ -8324,14 +8505,13 @@ function vsShowTab(n) {
   document.getElementById('vsPanel2').style.display = n===2 ? 'flex' : 'none';
   document.getElementById('vsPanel1').style.flexDirection = 'column';
   document.getElementById('vsPanel2').style.flexDirection = 'column';
-  // Reload curated picks when Outfit Advisor tab opens
   if (n === 2) { if(typeof loadYosPicks==='function') loadYosPicks(); }
-  document.getElementById('vsTab1').style.background   = n===1 ? '#1a1a1a' : 'transparent';
-  document.getElementById('vsTab1').style.color        = n===1 ? '#D4A354' : '#666';
-  document.getElementById('vsTab1').style.borderBottom = n===1 ? '2px solid #D4A354' : '2px solid transparent';
-  document.getElementById('vsTab2').style.background   = n===2 ? '#1a1a1a' : 'transparent';
-  document.getElementById('vsTab2').style.color        = n===2 ? '#D4A354' : '#666';
-  document.getElementById('vsTab2').style.borderBottom = n===2 ? '2px solid #D4A354' : '2px solid transparent';
+  document.getElementById('vsTab1').style.background   = n===1 ? '#fff' : '#f8f5f0';
+  document.getElementById('vsTab1').style.color        = n===1 ? '#D4A354' : '#999';
+  document.getElementById('vsTab1').style.borderBottom = n===1 ? '3px solid #D4A354' : '3px solid transparent';
+  document.getElementById('vsTab2').style.background   = n===2 ? '#fff' : '#f8f5f0';
+  document.getElementById('vsTab2').style.color        = n===2 ? '#D4A354' : '#999';
+  document.getElementById('vsTab2').style.borderBottom = n===2 ? '3px solid #D4A354' : '3px solid transparent';
 }
 
 // ── Web Speech API ───────────────────────────────────────────────────────────
