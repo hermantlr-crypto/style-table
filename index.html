@@ -8045,17 +8045,32 @@ document.addEventListener('click', (e) => {
       <input id="vsPickRetailer" placeholder="Retailer (e.g. Nordstrom)" style="background:#111;border:1px solid #333;border-radius:6px;color:#eee;font-size:11px;padding:8px;font-family:Montserrat,sans-serif;width:100%;box-sizing:border-box;" />
       <input id="vsPickPrice" placeholder="Price (e.g. $245)" style="background:#111;border:1px solid #333;border-radius:6px;color:#eee;font-size:11px;padding:8px;font-family:Montserrat,sans-serif;width:100%;box-sizing:border-box;" />
       <div style="color:#888;font-size:9px;margin-bottom:6px;letter-spacing:0.5px;">PRODUCT IMAGE</div>
-      <!-- Paste zone -->
-      <div id="vsImagePasteZone" onclick="document.getElementById('vsPickImage').focus()" style="
-        background:#fff;border:2px dashed #d4c4b0;border-radius:10px;
-        padding:16px;text-align:center;cursor:pointer;transition:border-color 0.2s;
-        margin-bottom:8px;
-      " onmouseover="this.style.borderColor='#D4A354'" onmouseout="this.style.borderColor='#d4c4b0'">
-        <div style="font-size:28px;margin-bottom:4px;">📋</div>
-        <div style="color:#888;font-size:12px;font-weight:600;">Click here then Cmd+V / Ctrl+V to paste image</div>
-        <div style="color:#aaa;font-size:10px;margin-top:4px;">Or right-click a product photo → Copy Image → paste here</div>
-        <input id="vsPickImage" style="opacity:0;position:absolute;width:1px;height:1px;" readonly />
+      <!-- Upload / Paste zone -->
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <!-- Upload button -->
+        <label for="vsPickImageUpload" style="
+          flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+          background:#fff;border:2px dashed #d4c4b0;border-radius:10px;
+          padding:14px;text-align:center;cursor:pointer;transition:border-color 0.2s;
+        " onmouseover="this.style.borderColor='#D4A354'" onmouseout="this.style.borderColor='#d4c4b0'">
+          <div style="font-size:28px;margin-bottom:4px;">📁</div>
+          <div style="color:#666;font-size:12px;font-weight:700;">Upload Photo</div>
+          <div style="color:#aaa;font-size:10px;margin-top:2px;">From device or camera</div>
+          <input type="file" id="vsPickImageUpload" accept="image/*" style="display:none;" onchange="vsHandleImageUpload(this)" />
+        </label>
+        <!-- Paste zone -->
+        <div id="vsImagePasteZone" tabindex="0" style="
+          flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+          background:#fff;border:2px dashed #d4c4b0;border-radius:10px;
+          padding:14px;text-align:center;cursor:pointer;transition:border-color 0.2s;
+        " onmouseover="this.style.borderColor='#D4A354'" onmouseout="this.style.borderColor='#d4c4b0'"
+           onclick="this.focus()">
+          <div style="font-size:28px;margin-bottom:4px;">📋</div>
+          <div style="color:#666;font-size:12px;font-weight:700;">Paste Image</div>
+          <div style="color:#aaa;font-size:10px;margin-top:2px;">Cmd+V / Ctrl+V</div>
+        </div>
       </div>
+      <input id="vsPickImage" style="display:none;" />
       <!-- URL fallback -->
       <div style="color:#aaa;font-size:10px;text-align:center;margin-bottom:6px;">— or paste image URL directly —</div>
       <input id="vsPickImageUrl" placeholder="https://example.com/product-image.jpg" style="background:#fff;border:1.5px solid #d4c4b0;border-radius:8px;color:#2a2a2a;font-size:12px;padding:10px;font-family:Montserrat,sans-serif;width:100%;box-sizing:border-box;" oninput="vsPreviewImage(this.value)" />
@@ -8357,6 +8372,21 @@ function vsPreviewImage(url) {
   } else {
     preview.style.display = 'none';
   }
+}
+
+function vsHandleImageUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    document.getElementById('vsPickImage').value = dataUrl;
+    const thumb = document.getElementById('vsPickImageThumbManual');
+    thumb.src = dataUrl;
+    document.getElementById('vsPickImagePreviewManual').style.display = 'flex';
+    document.getElementById('vsImagePasteZone').style.borderColor = '#d4c4b0';
+  };
+  reader.readAsDataURL(file);
 }
 
 function vsClearImage() {
@@ -8776,6 +8806,7 @@ async function vsAddPick() {
     document.getElementById('vsPickImagePreviewManual').style.display = 'none';
     document.getElementById('vsPickImageThumbManual').src = '';
     if(document.getElementById('vsPickImageUrl')) document.getElementById('vsPickImageUrl').value = '';
+    if(document.getElementById('vsPickImageUpload')) document.getElementById('vsPickImageUpload').value = '';
     // Reset ADD button in case it was in edit mode
     const addBtn = document.querySelector('#vsAdminPanel button[style*="background:linear-gradient"]');
     if (addBtn && addBtn.textContent.includes('UPDATE')) {
