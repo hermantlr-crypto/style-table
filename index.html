@@ -8289,7 +8289,7 @@ document.addEventListener('click', (e) => {
 <script>
 // ── Fetch product details from URL ────────────────────────────────────────
 async function vsFetchFromUrl() {
-  const url = document.getElementById('vsPickFetchUrl').value.trim();
+  const url = document.getElementById('vsPickUrl').value.trim();
   if (!url) { alert('Please paste a product URL first.'); return; }
 
   const btn = document.getElementById('vsFetchBtn');
@@ -8699,7 +8699,7 @@ async function vsLoadAdminList() {
 
 async function vsAddPick() {
   const name = document.getElementById('vsPickName').value.trim();
-  const url = document.getElementById('vsPickFetchUrl').value.trim();
+  const url = document.getElementById('vsPickUrl').value.trim();
   const retailer = document.getElementById('vsPickRetailer').value.trim();
   const price = document.getElementById('vsPickPrice').value.trim();
   const image = document.getElementById('vsPickImage').value.trim();
@@ -8796,7 +8796,7 @@ async function vsEditPick(id) {
 
 async function vsUpdatePick(id) {
   const name = document.getElementById('vsPickName').value.trim();
-  const url = document.getElementById('vsPickFetchUrl').value.trim();
+  const url = document.getElementById('vsPickUrl').value.trim();
   const retailer = document.getElementById('vsPickRetailer').value.trim();
   const price = document.getElementById('vsPickPrice').value.trim();
   const image = document.getElementById('vsPickImage').value.trim();
